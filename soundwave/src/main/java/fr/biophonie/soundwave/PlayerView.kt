@@ -34,7 +34,10 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
                 recycle()
             }
         }
-        playerController.setPlayerListener(this)
+        playerController.setListener(
+            play = {fab.setImageResource(R.drawable.ic_pause)},
+            pause = {fab.setImageResource(R.drawable.ic_play)}
+        )
         initView(context)
     }
 
@@ -78,50 +81,4 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
             field = value
             setSoundWaveColor()
         }
-
-    override fun onPlay(playerController: PlayerController?) {
-        Log.d(TAG, "onPlay: ")
-        fab.setImageResource(R.drawable.ic_pause)
-    }
-
-    override fun onPause(playerController: PlayerController?) {
-        fab.setImageResource(R.drawable.ic_play)
-    }
-
-    override fun onPrepared(playerController: PlayerController?) {
-    }
-
-    override fun onComplete(playerController: PlayerController?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onDurationProgress(
-        playerController: PlayerController?,
-        duration: Long,
-        currentTimeStamp: Long
-    ) {
-        TODO("Not yet implemented")
-    }
-
-    /*override fun checkLayoutParams(p: ViewGroup.LayoutParams?): Boolean {
-        return p is LayoutParams
-    }
-
-    override fun generateDefaultLayoutParams(): LayoutParams {
-        return LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-    }
-
-    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
-        return LayoutParams(context, attrs)
-    }
-
-    override fun generateLayoutParams(p: ViewGroup.LayoutParams?): LayoutParams {
-        return LayoutParams(p)
-    }
-
-    class LayoutParams : ConstraintLayout.LayoutParams{
-        constructor(width: Int, height: Int): super(width, height)
-        constructor(context: Context?, attrs: AttributeSet?): super(context, attrs)
-        constructor(layoutParams: ViewGroup.LayoutParams?): super(layoutParams)
-    }*/
 }

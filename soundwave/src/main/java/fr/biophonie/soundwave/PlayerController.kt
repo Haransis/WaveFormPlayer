@@ -7,7 +7,7 @@ import android.os.Handler
 import java.io.IOException
 
 private const val TAG = "PlayerController"
-class PlayerController {
+open class PlayerController {
     private val mediaPlayer = MediaPlayer()
     private val handler = Handler()
     private lateinit var runnable: Runnable
@@ -60,6 +60,49 @@ class PlayerController {
         } else {
             play()
         }
+    }
+
+    interface PlayerListener {
+        fun onPrepared(playerController: PlayerController?) = Unit
+        fun onComplete(playerController: PlayerController?) = Unit
+        fun onDurationProgress(playerController: PlayerController?, duration: Long, currentTimeStamp: Long) = Unit
+        fun onPause(playerController: PlayerController?) = Unit
+        fun onPlay(playerController: PlayerController?) = Unit
+    }
+
+
+    inline fun setListener(
+        crossinline prepare: () -> Unit = {},
+        crossinline play: () -> Unit = {},
+        crossinline pause: () -> Unit = {},
+        crossinline complete: () -> Unit = {},
+        crossinline durationProgress: () -> Unit = {}
+    ){
+        setPlayerListener(object: PlayerController.PlayerListener{
+            override fun onPrepared(playerController: PlayerController?) {
+                prepare()
+            }
+
+            override fun onPlay(playerController: PlayerController?) {
+                play()
+            }
+
+            override fun onPause(playerController: PlayerController?) {
+                pause()
+            }
+
+            override fun onComplete(playerController: PlayerController?) {
+                complete()
+            }
+
+            override fun onDurationProgress(
+                playerController: PlayerController?,
+                duration: Long,
+                currentTimeStamp: Long
+            ) {
+                durationProgress()
+            }
+        })
     }
     /*fun stop()
     fun isPlaying(): Boolean

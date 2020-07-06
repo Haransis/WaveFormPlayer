@@ -1,30 +1,9 @@
 package fr.biophonie.soundwave
 
 interface PlayerListener {
-    fun onPrepared(playerController: PlayerController?)
-    fun onComplete(playerController: PlayerController?)
-    fun onDurationProgress(playerController: PlayerController?, duration: Long, currentTimeStamp: Long)
-    fun onPause(playerController: PlayerController?)
-    fun onPlay(playerController: PlayerController?)
+    fun onPrepared(playerController: PlayerController?) = Unit
+    fun onComplete(playerController: PlayerController?) = Unit
+    fun onDurationProgress(playerController: PlayerController?, duration: Long, currentTimeStamp: Long) = Unit
+    fun onPause(playerController: PlayerController?) = Unit
+    fun onPlay(playerController: PlayerController?) = Unit
 }
-
-/*
-interface PlayerOnPreparedListener {
-    fun onPrepared(playerController: PlayerController?)
-}
-
-interface PlayerOnCompleteListener {
-    fun onComplete(playerController: PlayerController?)
-}
-
-interface PlayerOnDurationListener {
-    fun onDurationProgress(playerController: PlayerController?, duration: Long, currentTimeStamp: Long)
-}
-
-interface PlayerOnPauseListener {
-    fun onPause(playerController: PlayerController?)
-}
-
-interface PlayerOnPlayListener {
-    fun onPlay(playerController: PlayerController?)
-}*/

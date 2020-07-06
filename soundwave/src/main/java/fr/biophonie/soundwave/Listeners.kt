@@ -1,6 +1,6 @@
 package fr.biophonie.soundwave
 
-interface Listener {
+interface PlayerListener {
     fun onPrepared(playerController: PlayerController?)
     fun onComplete(playerController: PlayerController?)
     fun onDurationProgress(playerController: PlayerController?, duration: Long, currentTimeStamp: Long)

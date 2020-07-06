@@ -15,10 +15,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.IOException
 
 private const val TAG = "PlayerView"
-class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs),
-    PlayerOnPlayListener,
-    PlayerOnPauseListener,
-    PlayerOnPreparedListener{
+class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), PlayerListener{
 
     private lateinit var soundWaveView: SoundWaveView
     private var playerController: PlayerController = PlayerController()
@@ -37,8 +34,7 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
                 recycle()
             }
         }
-        playerController.setOnPlayListener(this)
-            .setOnPreparedListener(this)
+        playerController.setPlayerListener(this)
         initView(context)
     }
 
@@ -93,7 +89,18 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
     }
 
     override fun onPrepared(playerController: PlayerController?) {
+    }
 
+    override fun onComplete(playerController: PlayerController?) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onDurationProgress(
+        playerController: PlayerController?,
+        duration: Long,
+        currentTimeStamp: Long
+    ) {
+        TODO("Not yet implemented")
     }
 
     /*override fun checkLayoutParams(p: ViewGroup.LayoutParams?): Boolean {

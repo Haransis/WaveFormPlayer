@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="SoundWaveView">
+        <attr name="playedColor" format="color"/>
+        <attr name="nonPlayedColor" format="color"/>
+    </declare-styleable>
+    <declare-styleable name="PlayerView">
+        <attr name="mainColor" format="color"/>
+        <attr name="secondaryColor" format="color"/>
+    </declare-styleable>
+</resources>

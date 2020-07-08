@@ -21,6 +21,5 @@ class MainActivity : AppCompatActivity() {
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        //view.nonPlayedColorView = ContextCompat.getColor(this@MainActivity, R.color.colorAccent)
     }
 }

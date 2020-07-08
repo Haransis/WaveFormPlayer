@@ -4,16 +4,16 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
+import android.util.Log
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicLong
 
 private const val TAG = "PlayerController"
-private const val INTERVAL: Long = 32
+private const val INTERVAL: Long = 90
 open class PlayerController {
     private val mediaPlayer = MediaPlayer()
     private val handler = Handler()
     private lateinit var runnable: Runnable
-    private val durationCounter = AtomicLong()
 
     private lateinit var playerListener: PlayerListener
 
@@ -25,7 +25,7 @@ open class PlayerController {
                 playerListener.onDurationProgress(
                     this@PlayerController,
                     mediaPlayer.duration,
-                    durationCounter.addAndGet(INTERVAL)
+                    mediaPlayer.currentPosition.toLong()
                 )
                 if (mediaPlayer.isPlaying) {
                     handler.postDelayed(this, INTERVAL)
@@ -35,7 +35,6 @@ open class PlayerController {
 
         mediaPlayer.setOnCompletionListener {
             playerListener.onComplete(this)
-            durationCounter.set(0)
             handler.removeCallbacks(runnable)
         }
     }
@@ -60,7 +59,7 @@ open class PlayerController {
         mediaPlayer.start()
         playerListener.onPlay(this)
 
-        handler.postDelayed(runnable, INTERVAL)
+        handler.post(runnable)
     }
 
     private fun pause() {
@@ -90,7 +89,7 @@ open class PlayerController {
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
         crossinline complete: () -> Unit = {},
-        crossinline durationProgress: (Int, Long) -> Unit = { _, _ -> }
+        crossinline durationProgress: (Int, Long) -> Unit = { _, Long -> }
     ){
         setPlayerListener(object: PlayerListener{
             override fun onPrepared(playerController: PlayerController?) {

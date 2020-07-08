@@ -7,7 +7,6 @@
     android:id="@+id/container"
     tools:context=".MainActivity">
 
-    <!-- TODO make correct height. Maybe in onMeasure of player_view. Do not call super. -->
     <TextView
         android:id="@+id/hello_world"
         android:layout_width="wrap_content"
@@ -29,7 +28,7 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/hello_world"
         app:mainColor="@android:color/black"
-        app:secondaryColor="@android:color/white"/>
+        app:secondaryColor="@android:color/darker_gray"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

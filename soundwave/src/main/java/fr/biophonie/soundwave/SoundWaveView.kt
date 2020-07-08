@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 import kotlin.random.Random
@@ -17,6 +18,7 @@ class SoundWaveView(context: Context, attrs: AttributeSet): View(context, attrs)
 
     private var playedPaint: Paint
     private var nonPlayedPaint: Paint
+    private var progression: Float = 0F
     private var availableWidth by Delegates.notNull<Int>()
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
@@ -66,6 +68,16 @@ class SoundWaveView(context: Context, attrs: AttributeSet): View(context, attrs)
         availableHeight = (h.toFloat() - ypad).roundToInt()
         origin = availableHeight/2
         barWidth = availableWidth.toFloat() / amplitudes.size
+    }
+
+    fun updatePlayerPercent(percent: Float) {
+        progression = ceil(availableWidth * percent.toDouble()).toFloat()
+        if (progression < 0) {
+            progression = 0F
+        } else if (progression > availableWidth) {
+            progression = availableWidth.toFloat()
+        }
+        //invalidate()
     }
 
     override fun onDraw(canvas: Canvas?) {

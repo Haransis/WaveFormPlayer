@@ -6,16 +6,27 @@
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     >
 
+    <!-- Here we should be using chains. But for an unknown reason, it does not work -->
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/duration"
+        android:layout_marginTop="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/default_duration"
+        custom:layout_constraintBottom_toTopOf="@id/sound_wave_view"
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintTop_toTopOf="parent" />
+
     <fr.biophonie.soundwave.SoundWaveView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:id="@+id/sound_wave_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         custom:layout_constraintBottom_toBottomOf="parent"
         custom:layout_constraintEnd_toEndOf="parent"
         custom:layout_constraintStart_toStartOf="parent"
-        custom:layout_constraintTop_toTopOf="parent"
+        custom:layout_constraintTop_toBottomOf="@id/duration"
         custom:nonPlayedColor="@color/colorPrimaryDark"
-        custom:playedColor="@color/colorPrimary"/>
+        custom:playedColor="@color/colorPrimary" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatingActionButton"
@@ -27,10 +38,10 @@
         custom:maxImageSize="30dp"
         custom:borderWidth="2dp"
         custom:backgroundTint="@color/colorPrimaryDark"
-        custom:layout_constraintBottom_toBottomOf="@+id/sound_wave_view"
-        custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintStart_toStartOf="@+id/sound_wave_view"
-        custom:layout_constraintTop_toTopOf="@+id/sound_wave_view"
+        custom:layout_constraintBottom_toBottomOf="@id/sound_wave_view"
+        custom:layout_constraintEnd_toEndOf="@id/sound_wave_view"
+        custom:layout_constraintStart_toStartOf="@id/sound_wave_view"
+        custom:layout_constraintTop_toTopOf="@id/sound_wave_view"
         android:focusable="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

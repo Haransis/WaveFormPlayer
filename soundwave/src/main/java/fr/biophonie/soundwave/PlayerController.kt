@@ -5,28 +5,39 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
 import java.io.IOException
+import java.util.concurrent.atomic.AtomicLong
 
 private const val TAG = "PlayerController"
+private const val INTERVAL: Long = 32
 open class PlayerController {
     private val mediaPlayer = MediaPlayer()
     private val handler = Handler()
     private lateinit var runnable: Runnable
+    private val durationCounter = AtomicLong()
 
     private lateinit var playerListener: PlayerListener
 
-    fun preparePlayer(){
+    private fun preparePlayer(){
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener{ playerListener.onPrepared(this) }
-        /*runnable = Runnable {
-            onDurationListener.onDurationProgress(
-                this@DefaultSoundViewPlayer,
-                getDuration(),
-                durationCounter.addAndGet(INTERVAL)
-            )
-            if (mediaPlayer.isPlaying()) {
-                handler.postDelayed(this, INTERVAL)
+        runnable = object: Runnable {
+            override fun run() {
+                playerListener.onDurationProgress(
+                    this@PlayerController,
+                    mediaPlayer.duration,
+                    durationCounter.addAndGet(INTERVAL)
+                )
+                if (mediaPlayer.isPlaying) {
+                    handler.postDelayed(this, INTERVAL)
+                }
             }
-        }*/
+        }
+
+        mediaPlayer.setOnCompletionListener {
+            playerListener.onComplete(this)
+            durationCounter.set(0)
+            handler.removeCallbacks(runnable)
+        }
     }
 
     fun setPlayerListener(playerListener: PlayerListener): PlayerController{
@@ -41,12 +52,15 @@ open class PlayerController {
         preparePlayer()
     }
 
+    //TODO
     /*@Throws(IOException::class)
     fun setAudioSource(url: String?)*/
 
     private fun play() {
         mediaPlayer.start()
         playerListener.onPlay(this)
+
+        handler.postDelayed(runnable, INTERVAL)
     }
 
     private fun pause() {
@@ -65,7 +79,7 @@ open class PlayerController {
     interface PlayerListener {
         fun onPrepared(playerController: PlayerController?) = Unit
         fun onComplete(playerController: PlayerController?) = Unit
-        fun onDurationProgress(playerController: PlayerController?, duration: Long, currentTimeStamp: Long) = Unit
+        fun onDurationProgress(playerController: PlayerController?, duration: Int, currentTimeStamp: Long) = Unit
         fun onPause(playerController: PlayerController?) = Unit
         fun onPlay(playerController: PlayerController?) = Unit
     }
@@ -76,9 +90,9 @@ open class PlayerController {
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
         crossinline complete: () -> Unit = {},
-        crossinline durationProgress: () -> Unit = {}
+        crossinline durationProgress: (Int, Long) -> Unit = { _, _ -> }
     ){
-        setPlayerListener(object: PlayerController.PlayerListener{
+        setPlayerListener(object: PlayerListener{
             override fun onPrepared(playerController: PlayerController?) {
                 prepare()
             }
@@ -97,10 +111,10 @@ open class PlayerController {
 
             override fun onDurationProgress(
                 playerController: PlayerController?,
-                duration: Long,
+                duration: Int,
                 currentTimeStamp: Long
             ) {
-                durationProgress()
+                durationProgress(duration,currentTimeStamp)
             }
         })
     }

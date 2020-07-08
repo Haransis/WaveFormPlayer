@@ -4,8 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/container"
     tools:context=".MainActivity">
 
+    <!-- TODO make correct height. Maybe in onMeasure of player_view. Do not call super. -->
     <TextView
         android:id="@+id/hello_world"
         android:layout_width="wrap_content"
@@ -20,7 +22,7 @@
 
     <fr.biophonie.soundwave.PlayerView
         android:id="@+id/player_view"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="200dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"

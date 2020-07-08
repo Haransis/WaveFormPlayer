@@ -2,10 +2,14 @@ package fr.biophonie.example
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
+import android.view.ViewTreeObserver
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import fr.biophonie.soundwave.PlayerView
 import java.io.IOException
 
+private const val TAG = "MainActivity"
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

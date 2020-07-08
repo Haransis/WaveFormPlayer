@@ -8,18 +8,24 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.math.ceil
+
 
 private const val TAG = "PlayerView"
-class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), PlayerListener{
+class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
 
-    private lateinit var soundWaveView: SoundWaveView
     private var playerController: PlayerController = PlayerController()
+    private lateinit var soundWaveView: SoundWaveView
     private lateinit var fab: FloatingActionButton
+    private lateinit var timer: TextView
 
     init {
         context.theme.obtainStyledAttributes(
@@ -36,7 +42,11 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
         }
         playerController.setListener(
             play = {fab.setImageResource(R.drawable.ic_pause)},
-            pause = {fab.setImageResource(R.drawable.ic_play)}
+            pause = {fab.setImageResource(R.drawable.ic_play)},
+            durationProgress = {duration,currentTimeStamp ->
+                soundWaveView.updatePlayerPercent(currentTimeStamp / duration.toFloat())
+                timer.text = Utils.millisToString(duration - currentTimeStamp)
+            }
         )
         initView(context)
     }
@@ -53,6 +63,7 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
         }.apply { setOnClickListener { playerController.toggle() } }
+        timer = view.findViewById(R.id.duration)
         this.addView(view)
     }
 

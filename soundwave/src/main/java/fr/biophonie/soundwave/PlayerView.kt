@@ -5,18 +5,15 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.net.Uri
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
-import kotlin.math.ceil
 
 
 private const val TAG = "PlayerView"
@@ -29,7 +26,8 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
     private var amplitudesLonger = arrayOf(-0.609, 0.782, -0.971, -0.959, 0.369, -0.949, -0.915, 0.846, -0.334, 0.267, -0.123, 0.757, -0.165, 0.339, -0.19, 0.843, -0.757, -0.826, 0.573, -0.805, -0.705, 0.808, -0.086, 0.404, -0.276, 0.569, -0.274, 0.393, -0.068, 0.744, -0.623, -0.703, 0.515, -0.691, -0.608, 0.689, -0.108, 0.297, -0.174, 0.539, -0.145, 0.234, -0.174, 0.596, -0.59, -0.619, 0.301, -0.603, -0.58, 0.502, -0.287, 0.03, 0.083, 0.543, 0.125, -0.062, -0.368, 0.33, -0.503, -0.433, -0.036, -0.39, -0.44, 0.168, -0.431, -0.276, 0.341, 0.372, 0.361, -0.334, -0.413, -0.063, -0.197, -0.057, -0.314, 0.002, -0.079, -0.204, -0.283, -0.337, 0.312, -0.016, 0.274, -0.275, -0.125, -0.279, 0.17, 0.237, -0.215, 0.243, 0.214, -0.226, 0.079, -0.029, -0.024, -0.204, -0.064, 0.057, 0.153, -0.061, 0.14, 0.085, 0.081, 0.046, 0.067, -0.042, 0.012, -0.001, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.17, 0.004, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, -0.0, -0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, -0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, -0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, -0.042, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, 0.0, 0.0, 0.0, -0.0, -0.0, -0.0, -0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, -0.0, 0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, -0.0, -0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, -0.0, -0.0, -0.0, 0.0, -0.0, 0.0, 0.0, 0.0, -0.0, 0.0, 0.0, -0.0, 0.0, 0.0, 0.017, 0.005, -0.0)
     private var playerController: PlayerController = PlayerController()
     private lateinit var soundWaveView: SoundWaveView
-    private lateinit var fab: FloatingActionButton
+    private lateinit var play: FloatingActionButton
+    private lateinit var pause: ImageButton
     private lateinit var timer: TextView
 
     init {
@@ -46,8 +44,20 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
             }
         }
         playerController.setListener(
-            play = {fab.setImageResource(R.drawable.ic_pause)},
-            pause = {fab.setImageResource(R.drawable.ic_play)},
+            play = {
+                //fab.setImageResource(R.drawable.ic_pause)
+                play.visibility = View.GONE
+                pause.visibility = View.VISIBLE
+            },
+            pause = {
+                //fab.setImageResource(R.drawable.ic_play)
+                play.visibility = View.VISIBLE
+                pause.visibility = View.GONE
+            },
+            complete = {
+                play.setImageResource(R.drawable.ic_reload)
+                timer.text = Utils.millisToString(0)
+            },
             durationProgress = {duration,currentTimeStamp ->
                 soundWaveView.updatePlayerPercent(currentTimeStamp / duration.toFloat())
                 timer.text = Utils.millisToString(duration - currentTimeStamp)
@@ -63,7 +73,12 @@ class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(conte
             playedColor = secondaryColor
             nonPlayedColor = mainColor
         }
-        fab = view.findViewById<FloatingActionButton>(R.id.floatingActionButton).apply{
+        play = view.findViewById<FloatingActionButton>(R.id.play).apply{
+            backgroundTintList = ColorStateList.valueOf(secondaryColor)
+            imageTintList = ColorStateList.valueOf(mainColor)
+            foregroundTintList = ColorStateList.valueOf(mainColor)
+        }.apply { setOnClickListener { playerController.toggle() } }
+        pause = view.findViewById<ImageButton>(R.id.pause).apply{
             backgroundTintList = ColorStateList.valueOf(secondaryColor)
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)

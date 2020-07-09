@@ -29,7 +29,7 @@
         custom:playedColor="@color/colorPrimary" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floatingActionButton"
+        android:id="@+id/play"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:clickable="true"
@@ -43,5 +43,15 @@
         custom:layout_constraintStart_toStartOf="@id/sound_wave_view"
         custom:layout_constraintTop_toTopOf="@id/sound_wave_view"
         android:focusable="true" />
+
+    <androidx.appcompat.widget.AppCompatImageButton
+        android:id="@+id/pause"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_pause"
+        android:visibility="gone"
+        custom:layout_constraintTop_toTopOf="@id/sound_wave_view"
+        custom:layout_constraintEnd_toEndOf="@id/sound_wave_view"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

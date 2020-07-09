@@ -2,8 +2,12 @@ package fr.biophonie.soundwave
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.ColorStateList
+import android.graphics.Typeface
+import android.graphics.fonts.Font
 import android.net.Uri
+import android.os.Build
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -11,8 +15,11 @@ import android.view.View
 import android.widget.ImageButton
 import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.annotation.FontRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.getFontOrThrow
+import androidx.core.content.res.getStringOrThrow
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.IOException
 
@@ -38,6 +45,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             try {
                 mainColor = getColor(R.styleable.PlayerView_mainColor, ContextCompat.getColor(context, R.color.colorPrimary))
                 secondaryColor = getColor(R.styleable.PlayerView_secondaryColor, ContextCompat.getColor(context, R.color.colorPrimaryDark))
+                font = getString(R.styleable.PlayerView_fontName)
             } finally {
                 recycle()
             }
@@ -102,7 +110,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             }
         }
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
-            backgroundTintList = ColorStateList.valueOf(secondaryColor)
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
             setOnClickListener { playerController.toggle() } }
@@ -111,7 +118,10 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
             setOnClickListener { playerController.toggle() } }
-        timer = view.findViewById(R.id.duration)
+        timer = view.findViewById<TextView>(R.id.duration).apply{
+            //typeface = Typeface.createFromFile("android.resource://${ContextWrapper(context).packageName}/font/"+font+".ttf")
+            typeface = Typeface.createFromAsset(context.assets, font)
+        }
         this.addView(view)
     }
 
@@ -140,5 +150,11 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         set(value){
             field = value
             setSoundWaveColor()
+        }
+
+    var font: String?
+        set(value){
+            field = value
+            invalidate()
         }
 }

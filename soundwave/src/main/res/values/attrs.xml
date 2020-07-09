@@ -7,5 +7,6 @@
     <declare-styleable name="PlayerView">
         <attr name="mainColor" format="color"/>
         <attr name="secondaryColor" format="color"/>
+        <attr name="fontName" format="string"/>
     </declare-styleable>
 </resources>

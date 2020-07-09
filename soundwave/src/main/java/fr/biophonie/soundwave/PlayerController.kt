@@ -39,6 +39,14 @@ open class PlayerController {
         }
     }
 
+    fun isPlaying(): Boolean{
+        return mediaPlayer.isPlaying
+    }
+
+    fun setPosition(position: Float){
+        mediaPlayer.seekTo((position*mediaPlayer.duration).toInt())
+    }
+
     fun setPlayerListener(playerListener: PlayerListener): PlayerController{
         this.playerListener = playerListener
         return this

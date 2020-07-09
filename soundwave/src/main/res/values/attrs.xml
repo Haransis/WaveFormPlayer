@@ -8,5 +8,6 @@
         <attr name="mainColor" format="color"/>
         <attr name="secondaryColor" format="color"/>
         <attr name="fontName" format="string"/>
+        <attr name="title" format="string"/>
     </declare-styleable>
 </resources>

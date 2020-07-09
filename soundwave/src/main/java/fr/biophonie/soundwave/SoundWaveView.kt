@@ -15,9 +15,6 @@ import kotlin.properties.Delegates
 
 open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
-    //TODO(add a third color)
-    //TODO(add a font)
-    //TODO(add a title)
     private var playedPaint: Paint
     private var nonPlayedPaint: Paint
     private var progression: Float = 0F

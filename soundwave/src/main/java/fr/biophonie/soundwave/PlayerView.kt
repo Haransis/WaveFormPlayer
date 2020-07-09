@@ -9,6 +9,7 @@ import android.graphics.fonts.Font
 import android.net.Uri
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -35,6 +36,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     private lateinit var play: FloatingActionButton
     private lateinit var pause: ImageButton
     private lateinit var timer: TextView
+    private lateinit var title: TextView
 
     init {
         context.theme.obtainStyledAttributes(
@@ -46,6 +48,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
                 mainColor = getColor(R.styleable.PlayerView_mainColor, ContextCompat.getColor(context, R.color.colorPrimary))
                 secondaryColor = getColor(R.styleable.PlayerView_secondaryColor, ContextCompat.getColor(context, R.color.colorPrimaryDark))
                 font = getString(R.styleable.PlayerView_fontName)
+                text = getString(R.styleable.PlayerView_title)
             } finally {
                 recycle()
             }
@@ -79,6 +82,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     @SuppressLint("InflateParams") // This is the correct way to do it
     private fun initView(context: Context) {
         val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, null)
+        val font: Typeface = Typeface.createFromAsset(context.assets, font)
         soundWaveView = view.findViewById<SoundWaveView>(R.id.sound_wave_view).apply{
             playedColor = secondaryColor
             nonPlayedColor = mainColor
@@ -119,8 +123,13 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             foregroundTintList = ColorStateList.valueOf(mainColor)
             setOnClickListener { playerController.toggle() } }
         timer = view.findViewById<TextView>(R.id.duration).apply{
-            //typeface = Typeface.createFromFile("android.resource://${ContextWrapper(context).packageName}/font/"+font+".ttf")
-            typeface = Typeface.createFromAsset(context.assets, font)
+            typeface = font
+            setTextColor(ColorStateList.valueOf(mainColor))
+        }
+        title = view.findViewById<TextView>(R.id.sound_title).apply {
+            typeface = Typeface.create(font, Typeface.BOLD)
+            text = this@PlayerView.text
+            setTextColor(ColorStateList.valueOf(mainColor))
         }
         this.addView(view)
     }
@@ -153,6 +162,12 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         }
 
     var font: String?
+        set(value){
+            field = value
+            invalidate()
+        }
+
+    var text: String?
         set(value){
             field = value
             invalidate()

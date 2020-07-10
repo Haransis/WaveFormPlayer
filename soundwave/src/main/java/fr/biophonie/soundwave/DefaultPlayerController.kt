@@ -4,18 +4,18 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
+import android.util.Log
 import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
 class DefaultPlayerController: PlayerController {
 
-    private val mediaPlayer = MediaPlayer()
+    private var mediaPlayer = MediaPlayer()
     private val handler = Handler()
     private lateinit var runnable: Runnable
     private lateinit var playerListener: PlayerListener
 
-    //TODO(dismiss mediaplayer)
     override fun preparePlayer(){
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener{ playerListener.onPrepared(this) }
@@ -54,13 +54,14 @@ class DefaultPlayerController: PlayerController {
     @Throws(IOException::class)
     fun setAudioSource(context: Context, uri: Uri) {
         mediaPlayer.setDataSource(context, uri)
-
         preparePlayer()
     }
 
-    //TODO
-    /*@Throws(IOException::class)
-    fun setAudioSource(url: String?)*/
+    @Throws(IOException::class)
+    fun setAudioSource(url: String){
+        mediaPlayer.setDataSource(url)
+        preparePlayer()
+    }
 
     override fun play() {
         mediaPlayer.start()

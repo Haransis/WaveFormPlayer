@@ -28,8 +28,6 @@ import java.io.IOException
 private const val TAG = "PlayerView"
 open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
 
-    //TODO(use a viewModel replace controller ?)
-    //TODO(fetch from a URL)
     var playerController: DefaultPlayerController = DefaultPlayerController()
     private var isScrolling: Boolean = false
     private lateinit var soundWaveView: SoundWaveView
@@ -43,7 +41,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             attrs,
             R.styleable.PlayerView,
             0, 0).apply {
-
             try {
                 mainColor = getColor(R.styleable.PlayerView_mainColor, ContextCompat.getColor(context, R.color.colorPrimary))
                 secondaryColor = getColor(R.styleable.PlayerView_secondaryColor, ContextCompat.getColor(context, R.color.colorPrimaryDark))
@@ -144,6 +141,12 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     @Throws(IOException::class)
     fun addAudioFileUri(uri: Uri, amplitudes: Array<Double>){
         playerController.setAudioSource(context, uri)
+        soundWaveView.amplitudes = amplitudes
+    }
+
+    @Throws(IOException::class)
+    fun addAudioUrl(url: String, amplitudes: Array<Double>){
+        playerController.setAudioSource(url)
         soundWaveView.amplitudes = amplitudes
     }
 

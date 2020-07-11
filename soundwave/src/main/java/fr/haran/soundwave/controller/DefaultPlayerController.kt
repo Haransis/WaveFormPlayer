@@ -1,14 +1,16 @@
-package fr.haran.soundwave
+package fr.haran.soundwave.controller
 
 import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
+import fr.haran.soundwave.ui.PlayerView
 import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerView: PlayerView): PlayerController {
+class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerView: PlayerView):
+    PlayerController {
 
     private val handler = Handler()
     private var isPrepared = false
@@ -27,7 +29,9 @@ class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerVi
                 mediaPlayer.currentPosition.toLong())
 
                 if (mediaPlayer.isPlaying) {
-                    handler.postDelayed(this, INTERVAL)
+                    handler.postDelayed(this,
+                        INTERVAL
+                    )
                 }
             }
         }
@@ -45,7 +49,7 @@ class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerVi
         mediaPlayer.seekTo((position*mediaPlayer.duration).toInt())
     }
 
-    override fun setPlayerListener(playerListener: PlayerListener): DefaultPlayerController{
+    override fun setPlayerListener(playerListener: PlayerListener): DefaultPlayerController {
         this.playerListener = playerListener
         return this
     }
@@ -104,7 +108,7 @@ class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerVi
         crossinline complete: () -> Unit = {},
         crossinline durationProgress: (Int, Long) -> Unit = { _, Long -> }
     ){
-        setPlayerListener(object: PlayerListener{
+        setPlayerListener(object: PlayerListener {
             override fun onPrepared(playerController: PlayerController) {
                 prepare()
             }

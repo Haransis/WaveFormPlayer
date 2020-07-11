@@ -27,7 +27,7 @@
         custom:layout_constraintStart_toStartOf="parent"
         custom:layout_constraintTop_toTopOf="parent" />
 
-    <fr.haran.soundwave.SoundWaveView
+    <fr.haran.soundwave.ui.SoundWaveView
         android:id="@+id/sound_wave_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

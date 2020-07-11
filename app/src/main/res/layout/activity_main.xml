@@ -19,12 +19,13 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.233" />
 
-    <fr.haran.soundwave.PlayerView
+    <fr.haran.soundwave.ui.PlayerView
         android:id="@+id/player_view"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         app:fontName="ibm_plex_mono_regular.ttf"
         app:title="Music Title"
+        app:waveDb="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"

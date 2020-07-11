@@ -1,4 +1,4 @@
-package fr.haran.soundwave
+package fr.haran.soundwave.ui
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -14,6 +14,9 @@ import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import fr.haran.soundwave.controller.PlayerController
+import fr.haran.soundwave.R
+import fr.haran.soundwave.utils.Utils
 
 
 private const val TAG = "PlayerView"
@@ -33,10 +36,17 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             R.styleable.PlayerView,
             0, 0).apply {
             try {
-                mainColor = getColor(R.styleable.PlayerView_mainColor, ContextCompat.getColor(context, R.color.colorPrimary))
-                secondaryColor = getColor(R.styleable.PlayerView_secondaryColor, ContextCompat.getColor(context, R.color.colorPrimaryDark))
+                mainColor = getColor(
+                    R.styleable.PlayerView_mainColor, ContextCompat.getColor(context,
+                        R.color.colorPrimary
+                    ))
+                secondaryColor = getColor(
+                    R.styleable.PlayerView_secondaryColor, ContextCompat.getColor(context,
+                        R.color.colorPrimaryDark
+                    ))
                 font = getString(R.styleable.PlayerView_fontName)
                 text = getString(R.styleable.PlayerView_title)
+                isDb = getBoolean(R.styleable.PlayerView_waveDb, false)
             } finally {
                 recycle()
             }
@@ -64,7 +74,8 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     fun updatePlayerPercent(duration: Int, currentTimeStamp: Long){
         if(!isScrolling)
             soundWaveView.updateProgression(currentTimeStamp / duration.toFloat())
-        timer.text = Utils.millisToString(duration - currentTimeStamp)
+        timer.text =
+            Utils.millisToString(duration - currentTimeStamp)
     }
 
     fun attachController(controller: PlayerController){
@@ -75,9 +86,12 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     private fun initView(context: Context) {
         val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, null)
         val font: Typeface = Typeface.createFromAsset(context.assets, font)
-        soundWaveView = view.findViewById<SoundWaveView>(R.id.sound_wave_view).apply{
+        soundWaveView = view.findViewById<SoundWaveView>(
+            R.id.sound_wave_view
+        ).apply{
             playedColor = secondaryColor
             nonPlayedColor = mainColor
+            isDb = this@PlayerView.isDb
             setOnTouchListener(this@PlayerView)
         }
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
@@ -133,6 +147,12 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         }
 
     var text: String?
+        set(value){
+            field = value
+            invalidate()
+        }
+
+    var isDb: Boolean
         set(value){
             field = value
             invalidate()

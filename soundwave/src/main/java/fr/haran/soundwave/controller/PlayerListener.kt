@@ -1,4 +1,4 @@
-package fr.haran.soundwave
+package fr.haran.soundwave.controller
 
 interface PlayerListener {
     fun onComplete(playerController: PlayerController)

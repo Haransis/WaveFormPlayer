@@ -1,4 +1,4 @@
-package fr.haran.soundwave
+package fr.haran.soundwave.ui
 
 import android.content.Context
 import android.graphics.Canvas
@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import fr.haran.soundwave.R
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
@@ -35,8 +36,15 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
             0, 0).apply {
 
             try {
-                playedColor = getColor(R.styleable.SoundWaveView_playedColor, ContextCompat.getColor(context, R.color.colorPrimary))
-                nonPlayedColor = getColor(R.styleable.SoundWaveView_nonPlayedColor, ContextCompat.getColor(context, R.color.colorPrimaryDark))
+                playedColor = getColor(
+                    R.styleable.SoundWaveView_playedColor, ContextCompat.getColor(context,
+                        R.color.colorPrimary
+                    ))
+                nonPlayedColor = getColor(
+                    R.styleable.SoundWaveView_nonPlayedColor, ContextCompat.getColor(context,
+                        R.color.colorPrimaryDark
+                    ))
+                isDb = getBoolean(R.styleable.SoundWaveView_db, false)
             } finally {
                 recycle()
             }
@@ -48,13 +56,18 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
     private fun Path.buildPath(array: Array<Double>){
         this.rewind()
         this.moveTo(0F, origin.toFloat())
-        for (i in array.indices){
-            this.lineTo(i*barWidth, ((1+array[i])*origin).toFloat())
-            //path.lineTo(i*barWidth, ((-amplitudesDB[i])*origin).toFloat())
+        if (!isDb) {
+            for (i in array.indices) {
+                this.lineTo(i * barWidth, ((1 + array[i]) * origin).toFloat())
+            }
+        } else {
+            for (i in array.indices) {
+                this.lineTo(i*barWidth, ((-array[i])*origin).toFloat())
+            }
+            for (i in amplitudes.indices.reversed()){
+                this.lineTo(i*barWidth, ((2+array[i])*origin).toFloat())
+            }
         }
-        /*for (i in amplitudes.indices.reversed()){
-                path.lineTo(i*barWidth, ((2+amplitudesDB[i])*origin).toFloat())
-            }*/
     }
 
     @ColorRes var playedColor: Int
@@ -71,19 +84,32 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
             requestLayout()
         }
 
+    var isDb: Boolean
+        set(value){
+            field = value
+            invalidate()
+            requestLayout()
+        }
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
         playedPaint.apply {
             color = playedColor
-            style = Paint.Style.STROKE
             flags = ANTI_ALIAS_FLAG
             strokeWidth = 3.1F
+            if (!isDb)
+                style = Paint.Style.STROKE
+            else
+                style = Paint.Style.FILL_AND_STROKE
         }
         nonPlayedPaint.apply {
             color = nonPlayedColor
-            style = Paint.Style.STROKE
             flags = ANTI_ALIAS_FLAG
             strokeWidth = 3F
+            if (!isDb)
+                style = Paint.Style.STROKE
+            else
+                style = Paint.Style.FILL_AND_STROKE
         }
     }
 

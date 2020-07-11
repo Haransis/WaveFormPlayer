@@ -5,8 +5,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import fr.haran.soundwave.DefaultPlayerController
-import fr.haran.soundwave.PlayerView
+import fr.haran.soundwave.controller.DefaultPlayerController
+import fr.haran.soundwave.ui.PlayerView
 import java.io.IOException
 
 private const val TAG = "MainActivity"
@@ -21,7 +21,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val playerView = findViewById<PlayerView>(R.id.player_view)
-        playerController = DefaultPlayerController(MediaPlayer(), playerView).apply {
+        playerController = DefaultPlayerController(
+            MediaPlayer(),
+            playerView
+        ).apply {
             setListener(play = {
                 Toast.makeText(
                     this@MainActivity,
@@ -31,7 +34,7 @@ class MainActivity : AppCompatActivity() {
         }
         val uri = Uri.parse("android.resource://$packageName/raw/france")
         try {
-            playerController.addAudioFileUri(applicationContext, uri,amplitudes)
+            playerController.addAudioFileUri(applicationContext, uri,amplitudesDB)
             //view.addAudioUrl(url,amplitudes)
         } catch (e: IOException) {
             e.printStackTrace()

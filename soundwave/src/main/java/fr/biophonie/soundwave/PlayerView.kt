@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -44,8 +45,26 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         initView(context)
     }
 
+    fun onPlay(){
+        play.visibility = View.GONE
+        pause.visibility = View.VISIBLE
+    }
+
+    fun onPause(){
+        play.visibility = View.VISIBLE
+        pause.visibility = View.GONE
+    }
+
+    fun onComplete(){
+        play.setImageResource(R.drawable.ic_reload)
+        timer.text = Utils.millisToString(0)
+        play.visibility = View.VISIBLE
+        pause.visibility = View.GONE
+    }
+
     fun updatePlayerPercent(duration: Int, currentTimeStamp: Long){
-        soundWaveView.updateProgression(currentTimeStamp / duration.toFloat())
+        if(!isScrolling)
+            soundWaveView.updateProgression(currentTimeStamp / duration.toFloat())
         timer.text = Utils.millisToString(duration - currentTimeStamp)
     }
 
@@ -84,7 +103,29 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         soundWaveView = view.findViewById<SoundWaveView>(R.id.sound_wave_view).apply{
             playedColor = secondaryColor
             nonPlayedColor = mainColor
-            setOnTouchListener(listener)
+            setOnTouchListener{ v, event ->
+                if (this@PlayerView::playerController.isInitialized && playerController.isPlaying()){
+                    when(event.actionMasked){
+                        MotionEvent.ACTION_DOWN -> {
+                            true
+                        }
+                        MotionEvent.ACTION_MOVE -> {
+                            isScrolling = true
+                            soundWaveView.updateProgression(event.x / v.width)
+                            true
+                        }
+                        MotionEvent.ACTION_UP -> {
+                            playerController.setPosition(event.x / v.width)
+                            v.performClick()
+                            isScrolling = false
+                            true
+                        }
+                        else -> false
+                    }
+                }
+                else{
+                    false
+                }}
         }
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
             imageTintList = ColorStateList.valueOf(mainColor)

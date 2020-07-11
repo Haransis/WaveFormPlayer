@@ -9,7 +9,7 @@ import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(private var mediaPlayer: MediaPlayer, private var playerView: PlayerView): PlayerController {
+class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerView: PlayerView): PlayerController {
 
     private val handler = Handler()
     private var isPrepared = false
@@ -24,6 +24,8 @@ class DefaultPlayerController(private var mediaPlayer: MediaPlayer, private var 
             override fun run() {
                 playerView.updatePlayerPercent(mediaPlayer.duration,
                     mediaPlayer.currentPosition.toLong())
+                playerListener.onDurationProgress(this@DefaultPlayerController, mediaPlayer.duration,
+                mediaPlayer.currentPosition.toLong())
 
                 if (mediaPlayer.isPlaying) {
                     handler.postDelayed(this, INTERVAL)
@@ -94,5 +96,42 @@ class DefaultPlayerController(private var mediaPlayer: MediaPlayer, private var 
         mediaPlayer.setDataSource(url)
         preparePlayer()
         playerView.setAmplitudes(amplitudes)
+    }
+
+    inline fun setListener(
+        crossinline prepare: () -> Unit = {},
+        crossinline play: () -> Unit = {},
+        crossinline pause: () -> Unit = {},
+        crossinline complete: () -> Unit = {},
+        crossinline durationProgress: (Int, Long) -> Unit = { _, Long -> }
+    ){
+        setPlayerListener(object: PlayerListener{
+            override fun onPrepared(playerController: PlayerController) {
+                prepare()
+            }
+
+            override fun onPlay(playerController: PlayerController) {
+                playerView.onPlay()
+                play()
+            }
+
+            override fun onPause(playerController: PlayerController) {
+                playerView.onPause()
+                pause()
+            }
+
+            override fun onComplete(playerController: PlayerController) {
+                playerView.onComplete()
+                complete()
+            }
+
+            override fun onDurationProgress(
+                playerController: PlayerController,
+                duration: Int,
+                currentTimeStamp: Long
+            ) {
+                durationProgress(duration,currentTimeStamp)
+            }
+        })
     }
 }

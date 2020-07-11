@@ -5,6 +5,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewTreeObserver
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import fr.biophonie.soundwave.DefaultPlayerController
@@ -24,7 +25,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val playerView = findViewById<PlayerView>(R.id.player_view)
-        playerController = DefaultPlayerController(MediaPlayer(), playerView)
+        playerController = DefaultPlayerController(MediaPlayer(), playerView).apply {
+            setListener(play = {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Play Clicked !",
+                    Toast.LENGTH_SHORT
+                ).show()})
+        }
         val uri = Uri.parse("android.resource://$packageName/raw/france")
         try {
             playerController.addAudioFileUri(applicationContext, uri,amplitudes)

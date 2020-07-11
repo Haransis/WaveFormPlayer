@@ -3,6 +3,7 @@ package fr.biophonie.soundwave
 interface PlayerController {
     fun preparePlayer()
     fun isPlaying(): Boolean
+    fun setPosition(position: Float)
     fun play()
     fun pause()
     fun toggle()

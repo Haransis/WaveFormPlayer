@@ -9,29 +9,27 @@ import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController: PlayerController {
+class DefaultPlayerController(private var mediaPlayer: MediaPlayer, private var playerView: PlayerView): PlayerController {
 
-    private var mediaPlayer = MediaPlayer()
     private val handler = Handler()
+    private var isPrepared = false
     private lateinit var runnable: Runnable
     private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
+        playerView.attachController(this)
         mediaPlayer.prepareAsync()
-        mediaPlayer.setOnPreparedListener{ playerListener.onPrepared(this) }
+        mediaPlayer.setOnPreparedListener{ isPrepared = true }
         runnable = object: Runnable {
             override fun run() {
-                playerListener.onDurationProgress(
-                    this@DefaultPlayerController,
-                    mediaPlayer.duration,
-                    mediaPlayer.currentPosition.toLong()
-                )
+                playerView.updatePlayerPercent(mediaPlayer.duration,
+                    mediaPlayer.currentPosition.toLong())
+
                 if (mediaPlayer.isPlaying) {
                     handler.postDelayed(this, INTERVAL)
                 }
             }
         }
-
         mediaPlayer.setOnCompletionListener {
             playerListener.onComplete(this)
             handler.removeCallbacks(runnable)
@@ -42,7 +40,7 @@ class DefaultPlayerController: PlayerController {
         return mediaPlayer.isPlaying
     }
 
-    fun setPosition(position: Float){
+    override fun setPosition(position: Float){
         mediaPlayer.seekTo((position*mediaPlayer.duration).toInt())
     }
 
@@ -51,23 +49,18 @@ class DefaultPlayerController: PlayerController {
         return this
     }
 
-    @Throws(IOException::class)
-    fun setAudioSource(context: Context, uri: Uri) {
-        mediaPlayer.setDataSource(context, uri)
-        preparePlayer()
-    }
-
-    @Throws(IOException::class)
-    fun setAudioSource(url: String){
-        mediaPlayer.setDataSource(url)
-        preparePlayer()
-    }
-
     override fun play() {
-        mediaPlayer.start()
-        playerListener.onPlay(this)
-
-        handler.post(runnable)
+        if (isPrepared) {
+            mediaPlayer.start()
+            playerListener.onPlay(this)
+            handler.post(runnable)
+        } else {
+            mediaPlayer.prepareAsync()
+            mediaPlayer.setOnPreparedListener{
+                isPrepared = true
+                play()
+            }
+        }
     }
 
     override fun pause() {
@@ -89,37 +82,17 @@ class DefaultPlayerController: PlayerController {
         handler.removeCallbacks(runnable)
     }
 
-    inline fun setListener(
-        crossinline prepare: () -> Unit = {},
-        crossinline play: () -> Unit = {},
-        crossinline pause: () -> Unit = {},
-        crossinline complete: () -> Unit = {},
-        crossinline durationProgress: (Int, Long) -> Unit = { _, Long -> }
-    ){
-        setPlayerListener(object: PlayerListener{
-            override fun onPrepared(playerController: DefaultPlayerController?) {
-                prepare()
-            }
+    @Throws(IOException::class)
+    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: Array<Double>){
+        mediaPlayer.setDataSource(context, uri)
+        preparePlayer()
+        playerView.setAmplitudes(amplitudes)
+    }
 
-            override fun onPlay(playerController: DefaultPlayerController?) {
-                play()
-            }
-
-            override fun onPause(playerController: DefaultPlayerController?) {
-                pause()
-            }
-
-            override fun onComplete(playerController: DefaultPlayerController?) {
-                complete()
-            }
-
-            override fun onDurationProgress(
-                playerController: DefaultPlayerController?,
-                duration: Int,
-                currentTimeStamp: Long
-            ) {
-                durationProgress(duration,currentTimeStamp)
-            }
-        })
+    @Throws(IOException::class)
+    fun addAudioUrl(url: String, amplitudes: Array<Double>){
+        mediaPlayer.setDataSource(url)
+        preparePlayer()
+        playerView.setAmplitudes(amplitudes)
     }
 }

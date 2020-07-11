@@ -99,7 +99,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         waveForm.buildPath(amplitudes)
     }
 
-    fun updatePlayerPercent(percent: Float) {
+    fun updateProgression(percent: Float) {
         progression = percent
         invalidate()
     }

@@ -18,7 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
 private const val TAG = "PlayerView"
-open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
+open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener{
 
     private var isScrolling: Boolean = false
     private lateinit var soundWaveView: SoundWaveView
@@ -72,30 +72,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         playerController = controller
     }
 
-    private val listener = OnTouchListener{ v, event ->
-        if (this::playerController.isInitialized && playerController.isPlaying()){
-            when(event.actionMasked){
-                MotionEvent.ACTION_DOWN -> {
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    isScrolling = true
-                    soundWaveView.updateProgression(event.x / v.width)
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    playerController.setPosition(event.x / v.width)
-                    v.performClick()
-                    isScrolling = false
-                    true
-                }
-                else -> false
-            }
-        }
-        else{
-            false
-        }}
-
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
         val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, null)
@@ -103,29 +79,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         soundWaveView = view.findViewById<SoundWaveView>(R.id.sound_wave_view).apply{
             playedColor = secondaryColor
             nonPlayedColor = mainColor
-            setOnTouchListener{ v, event ->
-                if (this@PlayerView::playerController.isInitialized && playerController.isPlaying()){
-                    when(event.actionMasked){
-                        MotionEvent.ACTION_DOWN -> {
-                            true
-                        }
-                        MotionEvent.ACTION_MOVE -> {
-                            isScrolling = true
-                            soundWaveView.updateProgression(event.x / v.width)
-                            true
-                        }
-                        MotionEvent.ACTION_UP -> {
-                            playerController.setPosition(event.x / v.width)
-                            v.performClick()
-                            isScrolling = false
-                            true
-                        }
-                        else -> false
-                    }
-                }
-                else{
-                    false
-                }}
+            setOnTouchListener(this@PlayerView)
         }
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
             imageTintList = ColorStateList.valueOf(mainColor)
@@ -184,4 +138,25 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             field = value
             invalidate()
         }
+
+    override fun onTouch(v: View, event: MotionEvent): Boolean {
+        return if (this::playerController.isInitialized && playerController.isPlaying()){
+            when(event.actionMasked){
+                MotionEvent.ACTION_DOWN -> true
+                MotionEvent.ACTION_MOVE -> {
+                    isScrolling = true
+                    soundWaveView.updateProgression(event.x / v.width)
+                    true
+                }
+                MotionEvent.ACTION_UP -> {
+                    playerController.setPosition(event.x / v.width)
+                    v.performClick()
+                    isScrolling = false
+                    true
+                }
+                else -> false
+            }
+        } else
+            false
+    }
 }

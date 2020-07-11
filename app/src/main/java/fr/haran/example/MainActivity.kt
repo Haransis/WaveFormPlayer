@@ -1,16 +1,12 @@
-package fr.biophonie.example
+package fr.haran.example
 
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
-import android.view.ViewTreeObserver
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import fr.biophonie.soundwave.DefaultPlayerController
-import fr.biophonie.soundwave.PlayerController
-import fr.biophonie.soundwave.PlayerView
+import fr.haran.soundwave.DefaultPlayerController
+import fr.haran.soundwave.PlayerView
 import java.io.IOException
 
 private const val TAG = "MainActivity"

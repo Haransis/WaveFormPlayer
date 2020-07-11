@@ -1,7 +1,7 @@
 @file:JvmName("Utils")
 @file:JvmMultifileClass
 
-package fr.biophonie.soundwave
+package fr.haran.soundwave
 
 import java.text.SimpleDateFormat
 import java.util.*

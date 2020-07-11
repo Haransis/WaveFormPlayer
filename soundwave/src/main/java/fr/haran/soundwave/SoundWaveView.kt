@@ -1,4 +1,4 @@
-package fr.biophonie.soundwave
+package fr.haran.soundwave
 
 import android.content.Context
 import android.graphics.Canvas
@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.graphics.Path
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat

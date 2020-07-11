@@ -1,4 +1,4 @@
-package fr.biophonie.example
+package fr.haran.soundwave
 
 import org.junit.Test
 

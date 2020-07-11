@@ -1,4 +1,4 @@
-package fr.biophonie.example
+package fr.haran.soundwave
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("fr.biophonie.example", appContext.packageName)
+        assertEquals("fr.biophonie.soundwave", appContext.packageName)
     }
 }

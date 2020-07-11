@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fr.biophonie.soundwave">
+    package="fr.haran.soundwave">
 
     <application
         android:allowBackup="true"

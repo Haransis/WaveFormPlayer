@@ -1,3 +1,4 @@
+[![](https://jitpack.io/v/Haransis/WaveFormPlayer.svg)](https://jitpack.io/#Haransis/WaveFormPlayer)
 <p align="center">
   <img src="https://github.com/haransis/waveformplayer/blob/assets/Player.png"><br><br>
 </p>
@@ -8,11 +9,42 @@ An Android library to create visualization of a given sound. This is a very basi
 Note that the library does not build the amplitudes by itself.
 
 ## Installation
-Add the dependency in Gradle
-
+### Gradle
+1. Add the JitPack repository to your build file
+Add it in your root build.gradle at the end of repositories:
+```
+    allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+2. Add the dependency in Gradle
+```
     dependencies {
-       implementation 'com.github.Haran:WaveFormPlayer:1.0.0'
+       implementation 'com.github.Haran:WaveFormPlayer:v1.0.0'
     }
+```
+
+### Maven
+1. Add the JitPack repository to your build file
+```
+<repositories>
+	<repository>
+	    <id>jitpack.io</id>
+	    <url>https://jitpack.io</url>
+	</repository>
+</repositories>
+```
+2. Add the dependency
+```
+<dependency>
+    <groupId>com.github.Haransis</groupId>
+    <artifactId>WaveFormPlayer</artifactId>
+    <version>Tag</version>
+</dependency>
+```
 
 ## Usage
 1. Add the player view in your layout :

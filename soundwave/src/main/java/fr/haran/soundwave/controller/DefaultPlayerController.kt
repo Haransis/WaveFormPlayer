@@ -9,9 +9,10 @@ import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(private var mediaPlayer: MediaPlayer, var playerView: PlayerView):
+class DefaultPlayerController(var playerView: PlayerView):
     PlayerController {
 
+    private val mediaPlayer = MediaPlayer()
     private val handler = Handler()
     private var isPrepared = false
     private lateinit var runnable: Runnable

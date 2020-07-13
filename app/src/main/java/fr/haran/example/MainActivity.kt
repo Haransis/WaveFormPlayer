@@ -21,10 +21,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val playerView = findViewById<PlayerView>(R.id.player_view)
-        playerController = DefaultPlayerController(
-            MediaPlayer(),
-            playerView
-        ).apply {
+        playerController = DefaultPlayerController(playerView).apply {
             setListener(play = {
                 Toast.makeText(
                     this@MainActivity,

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/haransis/waveformplayer/blob/assets/Player.png"><br><br>
+</p>
+
 # WaveFormPlayer
 An Android library to create visualization of a given sound. This is a very basic implementation, use at your own risk.
 

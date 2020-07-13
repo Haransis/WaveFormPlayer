@@ -23,7 +23,7 @@ Add it in your root build.gradle at the end of repositories:
 2. Add the dependency in Gradle
 ```
     dependencies {
-       implementation 'com.github.Haran:WaveFormPlayer:v1.0.0'
+       implementation 'com.github.Haran:WaveFormPlayer:1.0.1'
     }
 ```
 

@@ -1,0 +1,33 @@
+R_DEF: Internal format may change without notice
+local
+attr? db
+attr? fontName
+attr? mainColor
+attr? nonPlayedColor
+attr? playedColor
+attr? secondaryColor
+attr? title
+attr? waveDb
+color colorAccent
+color colorPrimary
+color colorPrimaryDark
+drawable fab_border
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+drawable ic_pause
+drawable ic_play
+drawable ic_reload
+id duration
+id pause
+id play
+id sound_title
+id sound_wave_view
+layout player_view
+mipmap ic_launcher
+mipmap ic_launcher_round
+raw france
+string app_name
+string default_duration
+style AppTheme
+styleable PlayerView mainColor secondaryColor fontName title waveDb
+styleable SoundWaveView playedColor nonPlayedColor db

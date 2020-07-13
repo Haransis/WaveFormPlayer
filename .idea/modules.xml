@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/WaveFormPlayer.iml" filepath="$PROJECT_DIR$/.idea/modules/WaveFormPlayer.iml" group="WaveFormPlayer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="WaveFormPlayer/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/soundwave/soundwave.iml" filepath="$PROJECT_DIR$/.idea/modules/soundwave/soundwave.iml" group="WaveFormPlayer/soundwave" />
+    </modules>
+  </component>
+</project>

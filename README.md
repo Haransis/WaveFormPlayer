@@ -66,7 +66,15 @@ playerController = DefaultPlayerController(
             findViewById<PlayerView>(R.id.player_view)
         )
 ```
-You need to provide the playerview that you have in your layout.
+You need to set a Listener to the default controller. Using an empty one will use the default ones.
+```
+playerController.setListener(play = {...},
+                             complete = {...},
+                             prepare = {...},
+                             pause = {...},
+                             complete = {...},
+                             progress = {duration, time -> ...})
+```
 
 3. Add a ressource with the associated amplitudes to your controller
 - Local file

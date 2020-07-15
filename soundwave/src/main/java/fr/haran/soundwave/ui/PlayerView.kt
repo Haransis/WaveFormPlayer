@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Typeface
+import android.text.SpannableStringBuilder
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -44,7 +45,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
                     R.styleable.PlayerView_secondaryColor, ContextCompat.getColor(context,
                         R.color.colorPrimaryDark
                     ))
-                font = getString(R.styleable.PlayerView_fontName)
                 text = getString(R.styleable.PlayerView_title)
                 isDb = getBoolean(R.styleable.PlayerView_waveDb, false)
             } finally {
@@ -85,7 +85,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
         val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, null)
-        val font: Typeface = Typeface.createFromAsset(context.assets, font)
         soundWaveView = view.findViewById<SoundWaveView>(
             R.id.sound_wave_view
         ).apply{
@@ -103,15 +102,10 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
             setOnClickListener { playerController.toggle() } }
-        timer = view.findViewById<TextView>(R.id.duration).apply{
-            typeface = font
-            setTextColor(ColorStateList.valueOf(mainColor))
-        }
         title = view.findViewById<TextView>(R.id.sound_title).apply {
-            typeface = Typeface.create(font, Typeface.BOLD)
             text = this@PlayerView.text
-            setTextColor(ColorStateList.valueOf(mainColor))
         }
+        timer = view.findViewById(R.id.duration)
         this.addView(view)
     }
 
@@ -126,6 +120,10 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         soundWaveView.amplitudes = amplitudes
     }
 
+    fun <T>setText(title: T){
+        this.title.text = title as CharSequence
+    }
+
     @ColorRes
     var mainColor: Int
         set(value){
@@ -138,12 +136,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         set(value){
             field = value
             setSoundWaveColor()
-        }
-
-    var font: String?
-        set(value){
-            field = value
-            invalidate()
         }
 
     var text: String?

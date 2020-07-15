@@ -9,4 +9,5 @@ interface PlayerController {
     fun toggle()
     fun destroyPlayer()
     fun setPlayerListener(playerListener: PlayerListener): PlayerController
+    fun <T>setTitle(title: T)
 }

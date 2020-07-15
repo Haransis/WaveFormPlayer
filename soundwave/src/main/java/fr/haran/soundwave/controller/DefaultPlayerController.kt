@@ -4,6 +4,8 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
+import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import fr.haran.soundwave.ui.PlayerView
 import java.io.IOException
 
@@ -69,6 +71,10 @@ class DefaultPlayerController(var playerView: PlayerView):
         }
     }
 
+    override fun <T>setTitle(title: T){
+        playerView.setText(title)
+    }
+
     override fun pause() {
         mediaPlayer.pause()
         playerListener.onPause(this)
@@ -107,7 +113,7 @@ class DefaultPlayerController(var playerView: PlayerView):
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
         crossinline complete: () -> Unit = {},
-        crossinline durationProgress: (Int, Long) -> Unit = { _, Long -> }
+        crossinline progress: (Int, Long) -> Unit = { _, _ -> }
     ){
         setPlayerListener(object: PlayerListener {
             override fun onPrepared(playerController: PlayerController) {
@@ -134,7 +140,7 @@ class DefaultPlayerController(var playerView: PlayerView):
                 duration: Int,
                 currentTimeStamp: Long
             ) {
-                durationProgress(duration,currentTimeStamp)
+                progress(duration,currentTimeStamp)
             }
         })
     }

@@ -165,6 +165,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
                         Log.d(TAG, "onTouch: $mTouchSlop")
                         Log.d(TAG, "onTouch: $xDiff")
                         if (abs(xDiff) > mTouchSlop) {
+                            this.parent.requestDisallowInterceptTouchEvent(true)
                             isScrolling = true
                             soundWaveView.updateProgression(event.x / v.width)
                             true
@@ -174,11 +175,13 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
                     }
                 }
                 MotionEvent.ACTION_CANCEL -> {
+                    this.parent.requestDisallowInterceptTouchEvent(false)
                     firstEventX = null
                     isScrolling = false
                     false
                 }
                 MotionEvent.ACTION_UP -> {
+                    this.parent.requestDisallowInterceptTouchEvent(false)
                     firstEventX = null
                     isScrolling = false
                     playerController.setPosition(event.x / v.width)

@@ -91,7 +91,8 @@ class DefaultPlayerController(var playerView: PlayerView):
     }
 
     override fun destroyPlayer() {
-        mediaPlayer.stop()
+        if (mediaPlayer.isPlaying) mediaPlayer.stop()
+        mediaPlayer.reset()
         mediaPlayer.release()
         handler.removeCallbacks(runnable)
     }

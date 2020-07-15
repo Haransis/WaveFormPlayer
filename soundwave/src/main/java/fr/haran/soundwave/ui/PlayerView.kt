@@ -3,9 +3,8 @@ package fr.haran.soundwave.ui
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
-import android.graphics.Typeface
-import android.text.SpannableStringBuilder
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -18,12 +17,15 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.R
 import fr.haran.soundwave.utils.Utils
+import kotlin.math.abs
 
 
 private const val TAG = "PlayerView"
 open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener{
 
+    private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
     private var isScrolling: Boolean = false
+    private var firstEventX: Float? = null
     private lateinit var soundWaveView: SoundWaveView
     private lateinit var play: FloatingActionButton
     private lateinit var pause: ImageButton
@@ -155,19 +157,46 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             when(event.actionMasked){
                 MotionEvent.ACTION_DOWN -> true
                 MotionEvent.ACTION_MOVE -> {
-                    isScrolling = true
-                    soundWaveView.updateProgression(event.x / v.width)
-                    true
+                    if (isScrolling) {
+                        soundWaveView.updateProgression(event.x / v.width)
+                        true
+                    } else {
+                        val xDiff = calculateDistanceX(event)
+                        Log.d(TAG, "onTouch: $mTouchSlop")
+                        Log.d(TAG, "onTouch: $xDiff")
+                        if (abs(xDiff) > mTouchSlop) {
+                            isScrolling = true
+                            soundWaveView.updateProgression(event.x / v.width)
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    firstEventX = null
+                    isScrolling = false
+                    false
                 }
                 MotionEvent.ACTION_UP -> {
+                    firstEventX = null
+                    isScrolling = false
                     playerController.setPosition(event.x / v.width)
                     v.performClick()
-                    isScrolling = false
                     true
                 }
                 else -> false
             }
         } else
             false
+    }
+
+    private fun calculateDistanceX(event: MotionEvent): Int{
+        return if (firstEventX == null){
+            firstEventX = event.x
+            0
+        } else {
+            (event.x - firstEventX!!).toInt()
+        }
     }
 }

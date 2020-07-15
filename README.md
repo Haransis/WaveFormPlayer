@@ -23,7 +23,7 @@ Add it in your root build.gradle at the end of repositories:
 2. Add the dependency in Gradle
 ```
     dependencies {
-       implementation 'com.github.Haran:WaveFormPlayer:1.0.1'
+       implementation 'com.github.Haransis:WaveFormPlayer:1.0.1'
     }
 ```
 
@@ -42,7 +42,7 @@ Add it in your root build.gradle at the end of repositories:
 <dependency>
     <groupId>com.github.Haransis</groupId>
     <artifactId>WaveFormPlayer</artifactId>
-    <version>Tag</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 

@@ -1,4 +1,5 @@
 #!/bin/bash
+# Run this script for every new release
 previousVersion=$(git describe --tags "$(git rev-list --tags --max-count=1)")
 echo "Which version number will you choose for a new release ?"
 read -r newVersion

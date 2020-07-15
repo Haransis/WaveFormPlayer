@@ -57,6 +57,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     }
 
     fun onPlay(){
+        play.setImageResource(R.drawable.ic_play)
         play.visibility = View.GONE
         pause.visibility = View.VISIBLE
     }
@@ -162,8 +163,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
                         true
                     } else {
                         val xDiff = calculateDistanceX(event)
-                        Log.d(TAG, "onTouch: $mTouchSlop")
-                        Log.d(TAG, "onTouch: $xDiff")
                         if (abs(xDiff) > mTouchSlop) {
                             this.parent.requestDisallowInterceptTouchEvent(true)
                             isScrolling = true

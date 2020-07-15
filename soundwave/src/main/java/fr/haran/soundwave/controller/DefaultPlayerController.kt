@@ -26,16 +26,18 @@ class DefaultPlayerController(var playerView: PlayerView):
         mediaPlayer.setOnPreparedListener{ isPrepared = true }
         runnable = object: Runnable {
             override fun run() {
-                playerView.updatePlayerPercent(mediaPlayer.duration,
-                    mediaPlayer.currentPosition.toLong())
-                playerListener.onDurationProgress(this@DefaultPlayerController, mediaPlayer.duration,
-                mediaPlayer.currentPosition.toLong())
+                playerView.updatePlayerPercent(
+                    mediaPlayer.duration,
+                    mediaPlayer.currentPosition
+                )
+                playerListener.onDurationProgress(
+                    this@DefaultPlayerController,
+                    mediaPlayer.duration,
+                    mediaPlayer.currentPosition
+                )
 
-                if (mediaPlayer.isPlaying) {
-                    handler.postDelayed(this,
-                        INTERVAL
-                    )
-                }
+                if (mediaPlayer.isPlaying)
+                    handler.postDelayed(this, INTERVAL)
             }
         }
         mediaPlayer.setOnCompletionListener {
@@ -113,7 +115,7 @@ class DefaultPlayerController(var playerView: PlayerView):
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
         crossinline complete: () -> Unit = {},
-        crossinline progress: (Int, Long) -> Unit = { _, _ -> }
+        crossinline progress: (Int, Int) -> Unit = { _, _ -> }
     ){
         setPlayerListener(object: PlayerListener {
             override fun onPrepared(playerController: PlayerController) {
@@ -138,7 +140,7 @@ class DefaultPlayerController(var playerView: PlayerView):
             override fun onDurationProgress(
                 playerController: PlayerController,
                 duration: Int,
-                currentTimeStamp: Long
+                currentTimeStamp: Int
             ) {
                 progress(duration,currentTimeStamp)
             }

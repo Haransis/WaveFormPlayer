@@ -74,11 +74,11 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         pause.visibility = View.GONE
     }
 
-    fun updatePlayerPercent(duration: Int, currentTimeStamp: Long){
+    fun updatePlayerPercent(duration: Int, currentTimeStamp: Int){
         if(!isScrolling)
             soundWaveView.updateProgression(currentTimeStamp / duration.toFloat())
-        timer.text =
-            Utils.millisToString(duration - currentTimeStamp)
+        timer.text = Utils.millisToString(if (duration <= currentTimeStamp) 0
+            else (duration - currentTimeStamp).toLong() )
     }
 
     fun attachController(controller: PlayerController){

@@ -5,5 +5,5 @@ interface PlayerListener {
     fun onPause(playerController: PlayerController)
     fun onPlay(playerController: PlayerController)
     fun onPrepared(playerController: PlayerController)
-    fun onDurationProgress(playerController: PlayerController, duration: Int, currentTimeStamp: Long)
+    fun onDurationProgress(playerController: PlayerController, duration: Int, currentTimeStamp: Int)
 }

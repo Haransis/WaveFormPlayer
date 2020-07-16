@@ -78,7 +78,8 @@ class DefaultPlayerController(var playerView: PlayerView):
     }
 
     override fun pause() {
-        mediaPlayer.pause()
+        if (mediaPlayer.isPlaying)
+            mediaPlayer.pause()
         playerListener.onPause(this)
     }
 

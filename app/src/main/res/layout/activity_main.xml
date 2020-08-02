@@ -8,15 +8,17 @@
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/play"
+        android:text="@string/playerview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf=""/>
+        app:layout_constraintBottom_toTopOf="@id/rec"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/rec"
+        android:text="@string/recordingview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"

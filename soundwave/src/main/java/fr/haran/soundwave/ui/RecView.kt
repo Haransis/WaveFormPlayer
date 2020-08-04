@@ -14,8 +14,8 @@ import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 private const val TAG = "RecView"
-private const val MAX_AMPLITUDE = 32767
-private const val SAMPLES_PER_SCREEN = 100
+private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
+private const val DURATION = 2*60*1000
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var amplitude = 0
@@ -23,6 +23,7 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
     private var availableWidth by Delegates.notNull<Int>()
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
+    private var samples by Delegates.notNull<Int>()
     private var barWidth by Delegates.notNull<Float>()
     private var barHeight by Delegates.notNull<Float>()
     private val waveForm: Path = Path()
@@ -75,8 +76,9 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         val ypad = (paddingTop + paddingBottom).toFloat()
         availableWidth = (w.toFloat() - xpad).roundToInt()
         availableHeight = (h.toFloat() - ypad).roundToInt()
+        val samples = DURATION / 32
         origin = availableHeight/2
-        barWidth = availableWidth.toFloat() / SAMPLES_PER_SCREEN
+        barWidth = availableWidth.toFloat() / samples
         barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
         waveForm.rewind()
         waveForm.moveTo(0F, origin.toFloat())
@@ -90,8 +92,7 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
     }
 
     fun addAmplitude(newAmpl: Int){
-        Log.d(TAG, "addAmplitude: ${amplitude - newAmpl}")
-        waveForm.rLineTo(barWidth, (amplitude-newAmpl).toFloat())
+        waveForm.rLineTo(barWidth, (amplitude-newAmpl)* barHeight)
         amplitude = newAmpl
         invalidate()
     }

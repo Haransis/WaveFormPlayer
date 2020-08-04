@@ -18,6 +18,8 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.lang.Math.abs
+import java.lang.Math.random
 import java.util.*
 import kotlin.experimental.and
 import kotlin.properties.Delegates
@@ -25,7 +27,6 @@ import kotlin.properties.Delegates
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_CHANNELS: Int = android.media.AudioFormat.CHANNEL_IN_MONO
 private const val RECORDER_AUDIO_ENCODING: Int = android.media.AudioFormat.ENCODING_PCM_16BIT
-private const val BUFFER_ELEMENT_TO_REC = 1024 // want to play 2048 (2K) since 2 bytes we use only 1024
 private const val BYTES_PER_ELEMENT = 2 // 2 bytes in 16bit format
 
 private const val PERMISSION_CODE = 0
@@ -53,7 +54,8 @@ class RecActivity : AppCompatActivity() {
             override fun run() {
                 val sData = ShortArray(bufferSize)
                 recorder!!.read(sData, 0, bufferSize)
-                recView.addAmplitude(sData.average().toInt())
+                val iData = sData.map { it.toInt() }
+                recView.addAmplitude(iData.maxBy { kotlin.math.abs(it) } ?: 0)
 
                 if (isRecording)
                     handler.postDelayed(this, INTERVAL)
@@ -115,7 +117,7 @@ class RecActivity : AppCompatActivity() {
     private fun writeAudioDataToFile() {
         // Write the output audio in byte
         val filePath = applicationContext.externalCacheDir?.absolutePath + "/voice8K16bitmono.pcm"
-        val sData = ByteArray(bufferSize)
+        val sData = ByteArray(bufferSize * BYTES_PER_ELEMENT)
         var os: FileOutputStream? = null
         try {
             os = FileOutputStream(filePath)
@@ -123,7 +125,7 @@ class RecActivity : AppCompatActivity() {
             e.printStackTrace()
         }
         while (isRecording) {
-            recorder!!.read(sData, 0, bufferSize)
+            recorder!!.read(sData, 0, bufferSize * BYTES_PER_ELEMENT)
             try {
                 // writes the data to file from buffer
                 os?.write(sData, 0, bufferSize)

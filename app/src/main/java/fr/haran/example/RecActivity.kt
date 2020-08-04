@@ -5,24 +5,34 @@ import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.media.MediaRecorder
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import fr.haran.soundwave.ui.RecView
 import java.io.File
 import java.util.*
 
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
+private const val INTERVAL = 32L
+private const val TAG = "RecActivity"
 class RecActivity : AppCompatActivity() {
 
+    private lateinit var runnable: Runnable
+    private val handler = Handler()
+
     private var recorder: MediaRecorder? = null
-    private lateinit var recordFile: File
     private var isRecording = false
+
+    private lateinit var recView: RecView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_rec)
+        recView = findViewById(R.id.recview)
         setOnClickListeners()
     }
 
@@ -61,23 +71,38 @@ class RecActivity : AppCompatActivity() {
     }
 
     private fun startRecording() {
+        prepareRecorder()
+        recorder!!.start()
+        handler.post(runnable)
+        isRecording = true
+    }
+
+    private fun prepareRecorder() {
         val storageDir = applicationContext.externalCacheDir?.absolutePath
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.FRANCE).format(Date())
+        //val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.FRANCE).format(Date())
+        val name: String = "recording"
         recorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(storageDir + File.separator + "JPEG_${timeStamp}_"+".3gp")
+            setOutputFile(storageDir + File.separator + "3GP_${name}_" + ".3gp")
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
             prepare()
         }
-        recorder!!.start()
-        isRecording = true
+        runnable = object: Runnable {
+            override fun run() {
+                recView.addAmplitude(recorder!!.maxAmplitude)
+                if (isRecording)
+                    handler.postDelayed(this, INTERVAL)
+            }
+        }
     }
 
     private fun stopRecording() {
         recorder?.stop()
+        recorder?.reset()
         recorder?.release()
         recorder = null
+        handler.removeCallbacks(runnable)
         isRecording = false
     }
 }

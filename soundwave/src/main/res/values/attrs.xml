@@ -11,4 +11,7 @@
         <attr name="title" format="string"/>
         <attr name="waveDb" format="boolean"/>
     </declare-styleable>
+    <declare-styleable name="RecView">
+        <attr name="recColor" format="color"/>
+    </declare-styleable>
 </resources>

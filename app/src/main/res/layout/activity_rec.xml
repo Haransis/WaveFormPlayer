@@ -6,31 +6,12 @@
     android:layout_height="match_parent"
     tools:context=".RecActivity">
 
-    <fr.haran.soundwave.ui.RecView
-        android:id="@+id/recview"
+    <fr.haran.soundwave.ui.RecPlayerView
+        android:id="@+id/rec_player_view"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
-        app:recColor="@color/colorPrimary"
+        android:layout_height="match_parent"
+        app:rec_color="@color/colorPrimary"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/rec"/>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/rec"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="50dp"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="@drawable/fab_border"
-        android:foregroundTint="@android:color/black"
-        android:src="@drawable/ic_mic"
-        android:tint="@color/colorPrimaryDark"
-        app:maxImageSize="30dp"
-        app:borderWidth="2dp"
-        app:backgroundTint="@android:color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

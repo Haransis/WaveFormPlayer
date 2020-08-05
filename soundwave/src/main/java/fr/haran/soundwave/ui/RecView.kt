@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
@@ -15,18 +14,22 @@ import kotlin.properties.Delegates
 
 private const val TAG = "RecView"
 private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
-private const val DURATION = 2*60*1000
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
-    private var amplitude = 0
     private var recordPaint: Paint
     private var availableWidth by Delegates.notNull<Int>()
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
-    private var samples by Delegates.notNull<Int>()
     private var barWidth by Delegates.notNull<Float>()
     private var barHeight by Delegates.notNull<Float>()
     private val waveForm: Path = Path()
+
+    var samples: Int? = null
+        set(value){
+            field = value
+            invalidate()
+            requestLayout()
+        }
 
     init {
         context.theme.obtainStyledAttributes(
@@ -36,7 +39,7 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
             try {
                 recordColor = getColor(
-                    R.styleable.RecView_recColor, ContextCompat.getColor(context,
+                    R.styleable.RecView_recview_color, ContextCompat.getColor(context,
                         R.color.colorPrimary
                     ))
             } finally {
@@ -72,16 +75,18 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        val xpad = (paddingLeft + paddingRight).toFloat()
-        val ypad = (paddingTop + paddingBottom).toFloat()
-        availableWidth = (w.toFloat() - xpad).roundToInt()
-        availableHeight = (h.toFloat() - ypad).roundToInt()
-        val samples = DURATION / 32
-        origin = availableHeight/2
-        barWidth = availableWidth.toFloat() / samples
-        barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
-        waveForm.rewind()
-        waveForm.moveTo(0F, origin.toFloat())
+        samples?.let {
+            val xpad = (paddingLeft + paddingRight).toFloat()
+            val ypad = (paddingTop + paddingBottom).toFloat()
+            availableWidth = (w.toFloat() - xpad).roundToInt()
+            availableHeight = (h.toFloat() - ypad).roundToInt()
+            origin = availableHeight / 2
+            if (samples != 0)
+                barWidth = availableWidth.toFloat() / it
+            barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
+            waveForm.rewind()
+            waveForm.moveTo(0F, origin.toFloat())
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -91,9 +96,8 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         }
     }
 
-    fun addAmplitude(newAmpl: Int){
-        waveForm.rLineTo(barWidth, (amplitude-newAmpl)* barHeight)
-        amplitude = newAmpl
+    fun addAmplitude(dy: Int){
+        waveForm.rLineTo(barWidth, dy*barHeight)
         invalidate()
     }
 }

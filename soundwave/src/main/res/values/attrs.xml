@@ -12,6 +12,11 @@
         <attr name="waveDb" format="boolean"/>
     </declare-styleable>
     <declare-styleable name="RecView">
-        <attr name="recColor" format="color"/>
+        <attr name="recview_color" format="color"/>
+    </declare-styleable>
+    <declare-styleable name="RecPlayerView">
+        <attr name="rec_color" format="color"/>
+        <attr name="rec_duration" format="integer"/>
+        <attr name="rec_interval" format="integer"/>
     </declare-styleable>
 </resources>

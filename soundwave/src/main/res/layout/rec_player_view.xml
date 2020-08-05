@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:custom="http://schemas.android.com/apk/res-auto">
+
+    <!-- TODO Chronometer reverse way and FIX it is under toolbar-->
+    <Chronometer
+        android:id="@+id/record_timer"
+        android:layout_marginTop="64dp"
+        android:textSize="64sp"
+        android:textColor="@color/colorPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        custom:layout_constraintTop_toTopOf="parent"
+        custom:layout_constraintBottom_toTopOf="@id/recview"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintEnd_toEndOf="parent" />
+
+    <fr.haran.soundwave.ui.RecView
+        android:id="@+id/recview"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        custom:layout_constraintTop_toBottomOf="@id/record_timer"
+        custom:layout_constraintBottom_toTopOf="@id/record"
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="50dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/fab_border"
+        android:src="@drawable/ic_mic"
+        android:tint="@color/colorPrimaryDark"
+        custom:maxImageSize="30dp"
+        custom:borderWidth="2dp"
+        custom:backgroundTint="@android:color/white"
+        custom:layout_constraintBottom_toBottomOf="parent"
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

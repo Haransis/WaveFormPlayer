@@ -109,6 +109,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             text = this@PlayerView.text
         }
         timer = view.findViewById(R.id.duration)
+        setSoundWaveColor()
         this.addView(view)
     }
 

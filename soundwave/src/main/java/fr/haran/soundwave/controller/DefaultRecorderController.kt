@@ -13,6 +13,7 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.concurrent.ForkJoinPool
 import kotlin.properties.Delegates
 
 private const val TAG = "DefaultRecorderControll"
@@ -35,9 +36,12 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     override fun toggle() {
         if (isRecording)
-            stopRecording()
+            stopRecording(false)
         else {
             if (recordedBefore) {
+                amplitudes.clear()
+                amplitudes += 0
+                recPlayerView.resetAmplitudes()
                 deleteOldRecording()
             }
             startRecording()
@@ -45,12 +49,11 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     private fun deleteOldRecording() {
-        amplitudes.clear()
-        amplitudes += 0
-        recPlayerView.resetAmplitudes()
-        val fileToDelete = File(filePath)
-        if (fileToDelete.exists())
-            fileToDelete.canonicalFile.delete()
+        ForkJoinPool.commonPool().submit {
+            val fileToDelete = File(filePath)
+            if (fileToDelete.exists())
+                fileToDelete.canonicalFile.delete()
+        }
     }
 
     override fun isRecording(): Boolean {
@@ -79,7 +82,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun destroyRecorder() {
-        stopRecording()
+        stopRecording(true)
         handler.removeCallbacks(runnable)
     }
 
@@ -167,7 +170,9 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         }
     }
 
-    override fun stopRecording() {
+    override fun stopRecording(delete: Boolean) {
+        if (delete)
+            deleteOldRecording()
         recorder?.let {
             isRecording = false
             it.stop()

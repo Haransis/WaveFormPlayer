@@ -71,7 +71,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
             }
         }
         timerTv = view.findViewById<TextView>(R.id.timer).apply {
-            text = SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(0))
+            text = SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(duration.toLong()))
             setTextColor(recordColor)
         }
         setRecViewColor()
@@ -99,10 +99,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
         playerController = controller
     }
 
-    private var i = 0
     fun addAmplitude(dy: Int) {
-        Log.d(TAG, "addAmplitude: $i")
-        i++
         recView.addAmplitude(dy)
     }
 
@@ -121,7 +118,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
             override fun onFinish() {
                 recView.endLine()
                 timerTv.text = mTimeFormat.format(Date(0))
-                playerController.stopRecording()
+                playerController.stopRecording(false)
             }
         }.start()
         recordFab.setImageResource(R.drawable.ic_stop)

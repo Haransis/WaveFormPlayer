@@ -82,7 +82,6 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
             availableWidth = (w.toFloat() - xpad).roundToInt()
             availableHeight = (h.toFloat() - ypad).roundToInt()
             origin = availableHeight / 2
-            Log.d(TAG, "onSizeChanged: availableWidth $availableWidth samples $samples")
             barWidth = availableWidth.toFloat() / it
             barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
             waveForm.rewind()
@@ -110,5 +109,6 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     fun endLine(){
         waveForm.lineTo(availableWidth.toFloat(), origin.toFloat())
+        invalidate()
     }
 }

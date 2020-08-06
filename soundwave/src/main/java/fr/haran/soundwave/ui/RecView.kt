@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
@@ -81,8 +82,8 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
             availableWidth = (w.toFloat() - xpad).roundToInt()
             availableHeight = (h.toFloat() - ypad).roundToInt()
             origin = availableHeight / 2
-            if (samples != 0)
-                barWidth = availableWidth.toFloat() / it
+            Log.d(TAG, "onSizeChanged: availableWidth $availableWidth samples $samples")
+            barWidth = availableWidth.toFloat() / it
             barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
             waveForm.rewind()
             waveForm.moveTo(0F, origin.toFloat())
@@ -98,6 +99,12 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     fun addAmplitude(dy: Int){
         waveForm.rLineTo(barWidth, dy*barHeight)
+        invalidate()
+    }
+
+    fun resetAmplitudes() {
+        waveForm.reset()
+        waveForm.moveTo(0F, origin.toFloat())
         invalidate()
     }
 }

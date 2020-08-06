@@ -4,24 +4,24 @@
     android:layout_height="match_parent"
     xmlns:custom="http://schemas.android.com/apk/res-auto">
 
-    <Chronometer
-        android:id="@+id/record_timer"
-        android:layout_marginTop="50dp"
-        android:countDown="true"
-        android:textSize="24sp"
-        android:textColor="@color/colorPrimary"
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/timer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:textColor="@color/colorPrimary"
+        android:text="00:00"
+        android:textSize="24sp"
         custom:layout_constraintTop_toTopOf="parent"
-        custom:layout_constraintStart_toStartOf="parent"
-        custom:layout_constraintEnd_toEndOf="parent" />
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintStart_toStartOf="parent"/>
 
     <fr.haran.soundwave.ui.RecView
         android:id="@+id/recview"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:layout_marginVertical="10dp"
-        custom:layout_constraintTop_toBottomOf="@id/record_timer"
+        custom:layout_constraintTop_toBottomOf="@id/timer"
         custom:layout_constraintBottom_toTopOf="@id/record"
         custom:layout_constraintEnd_toEndOf="parent"
         custom:layout_constraintStart_toStartOf="parent" />

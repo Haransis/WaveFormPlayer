@@ -6,11 +6,16 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.icu.text.DateFormat
+import android.icu.text.SimpleDateFormat
+import android.os.CountDownTimer
 import android.os.SystemClock
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Chronometer
+import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
@@ -18,12 +23,16 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import fr.haran.soundwave.R
 import fr.haran.soundwave.controller.RecorderController
+import java.util.*
 
+
+private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
 
-    private lateinit var timer: Chronometer
+    private lateinit var countDown: CountDownTimer
+    private lateinit var timerTv: TextView
     private lateinit var recView: RecView
     private lateinit var recordFab: FloatingActionButton
     private lateinit var playerController: RecorderController
@@ -39,7 +48,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
                         R.color.colorPrimary
                     ))
                 duration = getInteger(R.styleable.RecPlayerView_rec_duration, 2*60*1000)
-                interval = getInteger(R.styleable.RecPlayerView_rec_interval, 32)
+                interval = getInteger(R.styleable.RecPlayerView_rec_interval, 100)
             } finally {
                 recycle()
             }
@@ -64,8 +73,9 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
                 }
             }
         }
-        timer = view.findViewById<Chronometer>(R.id.record_timer).apply{
-            base = SystemClock.elapsedRealtime() + 120000
+        timerTv = view.findViewById<TextView>(R.id.timer).apply {
+            text = SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(0))
+            setTextColor(recordColor)
         }
         setRecViewColor()
         setRecViewSamples()
@@ -92,18 +102,30 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
         playerController = controller
     }
 
+    private var i = 0
     fun addAmplitude(dy: Int) {
+        Log.d(TAG, "addAmplitude: $i")
+        i++
         recView.addAmplitude(dy)
     }
 
     fun onComplete() {
-        timer.stop()
-        recordFab.setImageResource(R.drawable.ic_mic)
+        countDown.cancel()
+        recordFab.setImageResource(R.drawable.ic_reload)
     }
 
     fun onStart() {
-        timer.base = SystemClock.elapsedRealtime() + 120000
-        timer.start()
+        val mTimeFormat = SimpleDateFormat("mm:ss", Locale.FRENCH)
+        countDown = object : CountDownTimer(duration.toLong(), 999) {
+            override fun onTick(millisUntilFinished: Long) {
+                timerTv.text = mTimeFormat.format(Date(millisUntilFinished))
+            }
+
+            override fun onFinish() {
+                timerTv.text = mTimeFormat.format(Date(0))
+                playerController.stopRecording()
+            }
+        }.start()
         recordFab.setImageResource(R.drawable.ic_stop)
     }
 
@@ -131,5 +153,9 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
     private fun setRecViewSamples() {
         if (interval != 0 && this::recView.isInitialized)
             recView.samples = duration / interval
+    }
+
+    fun resetAmplitudes() {
+        recView.resetAmplitudes()
     }
 }

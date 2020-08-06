@@ -8,18 +8,20 @@ import android.media.audiofx.NoiseSuppressor
 import android.os.Handler
 import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.properties.Delegates
 
-
+private const val TAG = "DefaultRecorderControll"
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_CHANNELS: Int = android.media.AudioFormat.CHANNEL_IN_MONO
 private const val RECORDER_AUDIO_ENCODING: Int = android.media.AudioFormat.ENCODING_PCM_16BIT
 private const val BYTES_PER_ELEMENT = 2 // 2 bytes in 16bit format
 class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String) : RecorderController {
 
+    private var recordedBefore = false
     private var isRecording = false
     private var recorder: AudioRecord? = null
     private var recordingThread: Thread? = null
@@ -27,16 +29,27 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private val amplitudes = mutableListOf(0)
     private lateinit var runnable: Runnable
     private val handler = Handler()
+    private lateinit var filePath: String
     private lateinit var recorderListener: RecorderListener
 
     override fun toggle() {
-        if (isRecording){
+        if (isRecording)
             stopRecording()
-            recorderListener.onComplete(this)
-        } else {
+        else {
+            if (recordedBefore) {
+                deleteOldRecording()
+            }
             startRecording()
-            recorderListener.onStart(this)
         }
+    }
+
+    private fun deleteOldRecording() {
+        amplitudes.clear()
+        amplitudes += 0
+        recPlayerView.resetAmplitudes()
+        val fileToDelete = File(filePath)
+        if (fileToDelete.exists())
+            fileToDelete.canonicalFile.delete()
     }
 
     override fun isRecording(): Boolean {
@@ -84,6 +97,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         recordingThread = Thread(Runnable { writeAudioDataToFile() }, "AudioRecorder Thread")
         recordingThread!!.start()
         handler.post(runnable)
+        recordedBefore = true
+        recorderListener.onStart(this)
     }
 
     private fun setAudioEffects() {
@@ -125,7 +140,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     private fun writeAudioDataToFile() {
         // Write the output audio in byte
-        val filePath = "$defaultPath/test.pcm"
+        filePath = "$defaultPath/test.pcm"
         val sData = ByteArray(bufferSize * BYTES_PER_ELEMENT)
         var os: FileOutputStream? = null
         try {
@@ -158,6 +173,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             recordingThread = null
         }
         handler.removeCallbacks(runnable)
+        recorderListener.onComplete(this)
     }
 
     inline fun setListener(

@@ -4,23 +4,23 @@
     android:layout_height="match_parent"
     xmlns:custom="http://schemas.android.com/apk/res-auto">
 
-    <!-- TODO Chronometer reverse way and FIX it is under toolbar-->
     <Chronometer
         android:id="@+id/record_timer"
-        android:layout_marginTop="64dp"
-        android:textSize="64sp"
+        android:layout_marginTop="50dp"
+        android:countDown="true"
+        android:textSize="24sp"
         android:textColor="@color/colorPrimary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         custom:layout_constraintTop_toTopOf="parent"
-        custom:layout_constraintBottom_toTopOf="@id/recview"
         custom:layout_constraintStart_toStartOf="parent"
         custom:layout_constraintEnd_toEndOf="parent" />
 
     <fr.haran.soundwave.ui.RecView
         android:id="@+id/recview"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="300dp"
+        android:layout_marginVertical="10dp"
         custom:layout_constraintTop_toBottomOf="@id/record_timer"
         custom:layout_constraintBottom_toTopOf="@id/record"
         custom:layout_constraintEnd_toEndOf="parent"

@@ -64,7 +64,9 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
                 }
             }
         }
-        timer = view.findViewById(R.id.record_timer)
+        timer = view.findViewById<Chronometer>(R.id.record_timer).apply{
+            base = SystemClock.elapsedRealtime() + 120000
+        }
         setRecViewColor()
         setRecViewSamples()
         this.addView(view)
@@ -100,7 +102,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
     }
 
     fun onStart() {
-        timer.base = SystemClock.elapsedRealtime()
+        timer.base = SystemClock.elapsedRealtime() + 120000
         timer.start()
         recordFab.setImageResource(R.drawable.ic_stop)
     }

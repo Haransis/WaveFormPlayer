@@ -2,12 +2,17 @@ package fr.haran.soundwave.controller
 
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.audiofx.AcousticEchoCanceler
+import android.media.audiofx.AutomaticGainControl
+import android.media.audiofx.NoiseSuppressor
 import android.os.Handler
+import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import kotlin.properties.Delegates
+
 
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_CHANNELS: Int = android.media.AudioFormat.CHANNEL_IN_MONO
@@ -73,11 +78,49 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             RECORDER_SAMPLERATE, RECORDER_CHANNELS,
             RECORDER_AUDIO_ENCODING, bufferSize * BYTES_PER_ELEMENT
         )
+        setAudioEffects()
         recorder!!.startRecording()
         isRecording = true
         recordingThread = Thread(Runnable { writeAudioDataToFile() }, "AudioRecorder Thread")
         recordingThread!!.start()
         handler.post(runnable)
+    }
+
+    private fun setAudioEffects() {
+        if (AutomaticGainControl.isAvailable()) {
+            val agc = AutomaticGainControl.create(recorder!!.audioSessionId)
+            //agc.g
+            Log.d("AudioRecord", "AGC is " + if (agc.enabled) "enabled" else "disabled")
+            agc.enabled = true
+            Log.d(
+                "AudioRecord",
+                "AGC is " + if (agc.enabled) "enabled" else "disabled" + " after trying to enable"
+            )
+        } else {
+            Log.d("AudioRecord", "AGC is unavailable")
+        }
+        if (NoiseSuppressor.isAvailable()) {
+            val ns = NoiseSuppressor.create(recorder!!.audioSessionId)
+            Log.d("AudioRecord", "NS is " + if (ns.enabled) "enabled" else "disabled")
+            ns.enabled = true
+            Log.d(
+                "AudioRecord",
+                "NS is " + if (ns.enabled) "enabled" else "disabled" + " after trying to disable"
+            )
+        } else {
+            Log.d("AudioRecord", "NS is unavailable")
+        }
+        if (AcousticEchoCanceler.isAvailable()) {
+            val aec = AcousticEchoCanceler.create(recorder!!.audioSessionId)
+            Log.d("AudioRecord", "AEC is " + if (aec.enabled) "enabled" else "disabled")
+            aec.enabled = true
+            Log.d(
+                "AudioRecord",
+                "AEC is " + if (aec.enabled) "enabled" else "disabled" + " after trying to disable"
+            )
+        } else {
+            Log.d("AudioRecord", "aec is unavailable")
+        }
     }
 
     private fun writeAudioDataToFile() {

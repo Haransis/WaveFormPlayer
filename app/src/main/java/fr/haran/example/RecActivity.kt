@@ -10,7 +10,6 @@ import androidx.core.app.ActivityCompat
 import fr.haran.soundwave.controller.DefaultRecorderController
 import fr.haran.soundwave.ui.RecPlayerView
 
-private const val INTERVAL = 32L
 private const val TAG = "RecActivity"
 class RecActivity : AppCompatActivity() {
 

@@ -1,6 +1,5 @@
 package fr.haran.soundwave.controller
 
-import android.icu.util.Calendar
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.audiofx.AcousticEchoCanceler
@@ -14,7 +13,6 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.*
 import kotlin.properties.Delegates
 
 private const val TAG = "DefaultRecorderControll"
@@ -29,7 +27,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var recorder: AudioRecord? = null
     private var recordingThread: Thread? = null
     private var bufferSize by Delegates.notNull<Int>()
-    private val amplitudes = mutableListOf(0)
+    val amplitudes = mutableListOf(0)
     private lateinit var runnable: Runnable
     private val handler = Handler()
     private lateinit var filePath: String
@@ -81,6 +79,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun destroyRecorder() {
+        stopRecording()
         handler.removeCallbacks(runnable)
     }
 

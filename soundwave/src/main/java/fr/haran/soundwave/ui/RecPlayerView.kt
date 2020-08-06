@@ -6,15 +6,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
-import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.CountDownTimer
-import android.os.SystemClock
 import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Chronometer
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout

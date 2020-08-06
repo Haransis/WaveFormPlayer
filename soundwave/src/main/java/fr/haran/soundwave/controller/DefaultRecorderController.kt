@@ -1,17 +1,20 @@
 package fr.haran.soundwave.controller
 
+import android.icu.util.Calendar
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.os.Handler
+import android.os.SystemClock
 import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.*
 import kotlin.properties.Delegates
 
 private const val TAG = "DefaultRecorderControll"
@@ -60,6 +63,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         recPlayerView.attachController(this)
         runnable = object: Runnable {
             override fun run() {
+                val currentTime = SystemClock.uptimeMillis()
                 val sData = ShortArray(bufferSize)
                 recorder!!.read(sData, 0, bufferSize)
                 val iData = sData.map { it.toInt() }
@@ -67,7 +71,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
                 recPlayerView.addAmplitude(amplitudes.last() - newAmplitude)
                 amplitudes += newAmplitude
                 if (isRecording)
-                    handler.postDelayed(this, recPlayerView.interval.toLong())
+                    handler.postAtTime(this, currentTime+recPlayerView.interval)
             }
         }
         bufferSize = AudioRecord.getMinBufferSize(

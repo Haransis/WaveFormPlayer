@@ -48,7 +48,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
                         R.color.colorPrimary
                     ))
                 duration = getInteger(R.styleable.RecPlayerView_rec_duration, 2*60*1000)
-                interval = getInteger(R.styleable.RecPlayerView_rec_interval, 100)
+                interval = getInteger(R.styleable.RecPlayerView_rec_interval, 150)
             } finally {
                 recycle()
             }
@@ -116,12 +116,13 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
 
     fun onStart() {
         val mTimeFormat = SimpleDateFormat("mm:ss", Locale.FRENCH)
-        countDown = object : CountDownTimer(duration.toLong(), 999) {
+        countDown = object : CountDownTimer(duration.toLong(), 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 timerTv.text = mTimeFormat.format(Date(millisUntilFinished))
             }
 
             override fun onFinish() {
+                recView.endLine()
                 timerTv.text = mTimeFormat.format(Date(0))
                 playerController.stopRecording()
             }

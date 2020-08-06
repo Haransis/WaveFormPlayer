@@ -107,4 +107,8 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         waveForm.moveTo(0F, origin.toFloat())
         invalidate()
     }
+
+    fun endLine(){
+        waveForm.lineTo(availableWidth.toFloat(), origin.toFloat())
+    }
 }

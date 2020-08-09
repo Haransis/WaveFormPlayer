@@ -9,12 +9,12 @@ import android.content.res.ColorStateList
 import android.icu.text.SimpleDateFormat
 import android.os.CountDownTimer
 import android.util.AttributeSet
-import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorRes
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -26,7 +26,7 @@ import java.util.*
 private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
-class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
+class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(context, attrs){
 
     private lateinit var countDown: CountDownTimer
     private lateinit var timerTv: TextView
@@ -35,6 +35,8 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
     private lateinit var playerController: RecorderController
 
     init {
+        orientation = LinearLayout.VERTICAL
+        gravity = Gravity.CENTER
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.RecPlayerView,
@@ -55,7 +57,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
 
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
-        val view: View = LayoutInflater.from(context).inflate(R.layout.rec_player_view, null)
+        val view = LayoutInflater.from(context).inflate(R.layout.rec_player_view, this, true)
         recView = view.findViewById<RecView>(
             R.id.recview
         ).apply{
@@ -76,7 +78,6 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(c
         }
         setRecViewColor()
         setRecViewSamples()
-        this.addView(view)
     }
 
     private fun setRecViewColor() {

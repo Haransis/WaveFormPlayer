@@ -1,30 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:custom="http://schemas.android.com/apk/res-auto">
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="androidx.appcompat.widget.LinearLayoutCompat"
+    tools:orientation="vertical"
+    tools:gravity="center">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/timer"
+        android:layout_weight="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textColor="@color/colorPrimary"
         android:text="00:00"
-        android:textSize="24sp"
-        custom:layout_constraintTop_toTopOf="parent"
-        custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintStart_toStartOf="parent"/>
+        android:textSize="24sp"/>
 
     <fr.haran.soundwave.ui.RecView
         android:id="@+id/recview"
         android:layout_width="match_parent"
-        android:layout_height="400dp"
-        android:layout_marginVertical="10dp"
-        custom:layout_constraintTop_toBottomOf="@id/timer"
-        custom:layout_constraintBottom_toTopOf="@id/record"
-        custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintStart_toStartOf="parent" />
+        android:layout_weight="1"
+        android:layout_height="0dp"
+        android:layout_marginVertical="10dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/record"
@@ -35,12 +34,11 @@
         android:focusable="true"
         android:foreground="@drawable/fab_border"
         android:src="@drawable/ic_mic"
+        android:layout_weight="0"
         android:tint="@color/colorPrimaryDark"
-        custom:maxImageSize="30dp"
-        custom:borderWidth="2dp"
-        custom:backgroundTint="@android:color/white"
-        custom:layout_constraintBottom_toBottomOf="parent"
-        custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintStart_toStartOf="parent" />
+        custom:fabCustomSize="60dp"
+        custom:maxImageSize="42dp"
+        custom:borderWidth="1dp"
+        custom:backgroundTint="@android:color/white" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</merge>

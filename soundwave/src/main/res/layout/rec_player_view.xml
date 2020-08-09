@@ -15,8 +15,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textColor="@color/colorPrimary"
-        android:text="00:00"
-        android:textSize="24sp"/>
+        android:text="00:00" />
 
     <fr.haran.soundwave.ui.RecView
         android:id="@+id/recview"
@@ -37,7 +36,7 @@
         android:layout_weight="0"
         android:tint="@color/colorPrimaryDark"
         custom:fabCustomSize="60dp"
-        custom:maxImageSize="42dp"
+        custom:maxImageSize="30dp"
         custom:borderWidth="1dp"
         custom:backgroundTint="@android:color/white" />
 

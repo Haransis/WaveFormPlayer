@@ -31,7 +31,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     val amplitudes = mutableListOf(0)
     private lateinit var runnable: Runnable
     private val handler = Handler()
-    private lateinit var filePath: String
+    lateinit var filePath: String
     private lateinit var recorderListener: RecorderListener
 
     override fun toggle() {
@@ -149,6 +149,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     private fun writeAudioDataToFile() {
         // Write the output audio in byte
+        //TODO unique filename
         filePath = "$defaultPath/test.pcm"
         val sData = ByteArray(bufferSize * BYTES_PER_ELEMENT)
         var os: FileOutputStream? = null
@@ -189,7 +190,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     inline fun setListener(
-        crossinline play: () -> Unit = {},
+        crossinline start: () -> Unit = {},
         crossinline complete: () -> Unit = {}
     ){
         setRecorderListener(object: RecorderListener {
@@ -201,7 +202,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
             override fun onStart(recorderController: RecorderController) {
                 recPlayerView.onStart()
-                play()
+                start()
             }
         })
     }

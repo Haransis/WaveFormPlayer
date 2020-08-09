@@ -28,7 +28,7 @@ private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 open class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(context, attrs){
 
-    private lateinit var countDown: CountDownTimer
+    lateinit var countDown: CountDownTimer
     private lateinit var timerTv: TextView
     private lateinit var recView: RecView
     private lateinit var recordFab: FloatingActionButton

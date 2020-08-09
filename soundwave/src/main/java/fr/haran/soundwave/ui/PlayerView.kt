@@ -87,7 +87,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
 
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
-        val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, null)
+        val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, this, true)
         soundWaveView = view.findViewById<SoundWaveView>(
             R.id.sound_wave_view
         ).apply{
@@ -110,13 +110,12 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         }
         timer = view.findViewById(R.id.duration)
         setSoundWaveColor()
-        this.addView(view)
     }
 
     private fun setSoundWaveColor(){
         if (this::soundWaveView.isInitialized){
-            soundWaveView.playedColor = mainColor
-            soundWaveView.nonPlayedColor = secondaryColor
+            soundWaveView.nonPlayedColor = mainColor
+            soundWaveView.playedColor = secondaryColor
         }
     }
 

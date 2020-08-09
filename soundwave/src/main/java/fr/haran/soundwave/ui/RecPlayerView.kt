@@ -26,7 +26,7 @@ import java.util.*
 private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
-class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(context, attrs){
+open class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(context, attrs){
 
     private lateinit var countDown: CountDownTimer
     private lateinit var timerTv: TextView
@@ -35,7 +35,7 @@ class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(conte
     private lateinit var playerController: RecorderController
 
     init {
-        orientation = LinearLayout.VERTICAL
+        orientation = VERTICAL
         gravity = Gravity.CENTER
         context.theme.obtainStyledAttributes(
             attrs,

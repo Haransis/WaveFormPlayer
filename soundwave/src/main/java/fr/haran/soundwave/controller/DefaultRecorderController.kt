@@ -82,7 +82,10 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun destroyRecorder() {
-        stopRecording(true)
+        if (isRecording)
+            stopRecording(true)
+        else
+            stopRecording(false)
         handler.removeCallbacks(runnable)
     }
 
@@ -173,6 +176,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     override fun stopRecording(delete: Boolean) {
         if (delete)
             deleteOldRecording()
+        if (isRecording)
+            recorderListener.onComplete(this)
         recorder?.let {
             isRecording = false
             it.stop()
@@ -181,7 +186,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             recordingThread = null
         }
         handler.removeCallbacks(runnable)
-        recorderListener.onComplete(this)
     }
 
     inline fun setListener(

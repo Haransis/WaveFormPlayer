@@ -21,7 +21,7 @@ private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_CHANNELS: Int = android.media.AudioFormat.CHANNEL_IN_MONO
 private const val RECORDER_AUDIO_ENCODING: Int = android.media.AudioFormat.ENCODING_PCM_16BIT
 private const val BYTES_PER_ELEMENT = 2 // 2 bytes in 16bit format
-class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String) : RecorderController {
+class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
 
     private var recordedBefore = false
     private var isRecording = false
@@ -189,6 +189,11 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         handler.removeCallbacks(runnable)
     }
 
+    interface InformationRetriever{
+        fun setPath(path: String)
+        fun setAmplitudes(amplitudes: List<Int>)
+    }
+
     inline fun setListener(
         crossinline start: () -> Unit = {},
         crossinline complete: () -> Unit = {}
@@ -197,6 +202,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
             override fun onComplete(recorderController: RecorderController) {
                 recPlayerView.onComplete()
+                retriever?.setPath(filePath)
+                retriever?.setAmplitudes(amplitudes)
                 complete()
             }
 

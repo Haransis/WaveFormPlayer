@@ -21,7 +21,7 @@ class RecActivity : AppCompatActivity() {
         recorderController = applicationContext.externalCacheDir?.absolutePath?.let {
             DefaultRecorderController(findViewById(R.id.rec_player_view),
                 it
-            ).apply { setListener(play = {
+            ).apply { setListener(start = {
                 Toast.makeText(
                     this@RecActivity,
                     "Rec Clicked !",

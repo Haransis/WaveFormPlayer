@@ -4,40 +4,87 @@
     android:layout_height="match_parent"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:parentTag="androidx.appcompat.widget.LinearLayoutCompat"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout"
     tools:orientation="vertical"
     tools:gravity="center">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/timer"
-        android:layout_weight="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:textColor="@color/colorPrimary"
-        android:text="00:00" />
+        android:text="00:00"
+        custom:layout_constraintBottom_toTopOf="@id/recview"
+        custom:layout_constraintTop_toTopOf="parent"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintEnd_toEndOf="parent"/>
 
     <fr.haran.soundwave.ui.RecView
         android:id="@+id/recview"
         android:layout_width="match_parent"
-        android:layout_weight="1"
         android:layout_height="0dp"
-        android:layout_marginVertical="10dp" />
+        android:layout_marginVertical="10dp"
+        custom:layout_constraintTop_toBottomOf="@id/timer"
+        custom:layout_constraintBottom_toTopOf="@id/record"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintEnd_toEndOf="parent"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="30dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="@drawable/fab_border"
         android:src="@drawable/ic_mic"
-        android:layout_weight="0"
         android:tint="@color/colorPrimaryDark"
         custom:fabCustomSize="60dp"
         custom:maxImageSize="30dp"
         custom:borderWidth="1dp"
-        custom:backgroundTint="@android:color/white" />
+        custom:backgroundTint="@android:color/white"
+        custom:layout_constraintTop_toBottomOf="@id/recview"
+        custom:layout_constraintBottom_toBottomOf="parent"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/control_buttons"
+        custom:constraint_referenced_ids="play,record_again"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_play"
+        android:clickable="true"
+        android:focusable="true"
+        android:tint="@color/colorPrimaryDark"
+        custom:borderWidth="1dp"
+        custom:backgroundTint="@android:color/white"
+        custom:layout_constraintHorizontal_bias="0.3"
+        custom:layout_constraintVertical_bias="0.4"
+        custom:layout_constraintStart_toEndOf="@id/record"
+        custom:layout_constraintTop_toBottomOf="@id/recview"
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintBottom_toBottomOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/record_again"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_reload"
+        android:clickable="true"
+        android:focusable="true"
+        android:tint="@color/colorPrimaryDark"
+        custom:borderWidth="1dp"
+        custom:backgroundTint="@android:color/white"
+        custom:layout_constraintVertical_bias="0.4"
+        custom:layout_constraintHorizontal_bias="0.7"
+        custom:layout_constraintTop_toBottomOf="@id/recview"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintEnd_toStartOf="@id/record"
+        custom:layout_constraintBottom_toBottomOf="parent" />
 
 </merge>

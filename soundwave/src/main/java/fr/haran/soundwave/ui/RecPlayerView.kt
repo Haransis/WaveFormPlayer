@@ -15,6 +15,7 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorRes
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -26,7 +27,7 @@ import java.util.*
 private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
-open class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(context, attrs){
+open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
 
     lateinit var countDown: CountDownTimer
     private lateinit var timerTv: TextView
@@ -35,8 +36,6 @@ open class RecPlayerView (context: Context, attrs: AttributeSet) : LinearLayout(
     private lateinit var playerController: RecorderController
 
     init {
-        orientation = VERTICAL
-        gravity = Gravity.CENTER
         context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.RecPlayerView,

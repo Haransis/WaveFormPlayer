@@ -17,7 +17,10 @@ private const val TAG = "RecView"
 private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
+    private var progression: Float = 0F
     private var recordPaint: Paint
+    private var playPaint: Paint
+    private var isPlaying = false
     private var availableWidth by Delegates.notNull<Int>()
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
@@ -43,21 +46,33 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
                     R.styleable.RecView_recview_color, ContextCompat.getColor(context,
                         R.color.colorPrimary
                     ))
+                playColor = getColor(
+                    R.styleable.RecView_recview_playedColor, ContextCompat.getColor(context,
+                        R.color.colorPrimaryDark
+                    ))
             } finally {
                 recycle()
             }
         }
-        recordPaint = Paint()
-        recordPaint.apply {
+        recordPaint = Paint().apply {
             color = recordColor
             flags = Paint.ANTI_ALIAS_FLAG
             strokeWidth = 20F
             style = Paint.Style.STROKE
         }
+        playPaint = recordPaint.apply { color = playColor }
     }
 
     @ColorRes
     var recordColor: Int
+        set(value){
+            field = value
+            invalidate()
+            requestLayout()
+        }
+
+    @ColorRes
+    var playColor: Int
         set(value){
             field = value
             invalidate()
@@ -93,6 +108,10 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         super.onDraw(canvas)
         canvas?.apply {
             drawPath(waveForm, recordPaint)
+            if (isPlaying){
+                drawPath(waveForm, playPaint)
+                clipRect((availableWidth*progression).toInt(),0,availableWidth,availableHeight)
+            }
         }
     }
 
@@ -109,6 +128,11 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     fun endLine(){
         waveForm.lineTo(availableWidth.toFloat(), origin.toFloat())
+        invalidate()
+    }
+
+    fun updateProgression(percent: Float) {
+        progression = percent
         invalidate()
     }
 }

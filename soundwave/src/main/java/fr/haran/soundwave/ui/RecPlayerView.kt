@@ -9,17 +9,17 @@ import android.content.res.ColorStateList
 import android.icu.text.SimpleDateFormat
 import android.os.CountDownTimer
 import android.util.AttributeSet
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.Group
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import fr.haran.soundwave.R
+import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.controller.RecorderController
 import java.util.*
 
@@ -27,13 +27,18 @@ import java.util.*
 private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
-open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs){
+open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs),
+PlayingView{
 
     lateinit var countDown: CountDownTimer
     private lateinit var timerTv: TextView
     private lateinit var recView: RecView
     private lateinit var recordFab: FloatingActionButton
-    private lateinit var playerController: RecorderController
+    private lateinit var playFab: FloatingActionButton
+    private lateinit var recordAgainFab: FloatingActionButton
+    private lateinit var controlButtons: Group
+    private lateinit var recorder: RecorderController
+    private lateinit var player: PlayerController
 
     init {
         context.theme.obtainStyledAttributes(
@@ -67,9 +72,20 @@ open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLay
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
                 if (checkPermission(context)){
-                    playerController.toggle()
+                    recorder.toggle()
                 }
             }
+        }
+        controlButtons = view.findViewById(R.id.control_buttons)
+        recordAgainFab = view.findViewById<FloatingActionButton>(R.id.record_again).apply {
+            imageTintList = ColorStateList.valueOf(recordColor)
+            foregroundTintList = ColorStateList.valueOf(recordColor)
+            setOnClickListener { recorder.toggle() }
+        }
+        playFab = view.findViewById<FloatingActionButton>(R.id.play).apply {
+            imageTintList = ColorStateList.valueOf(recordColor)
+            foregroundTintList = ColorStateList.valueOf(recordColor)
+            setOnClickListener { player.toggle() }
         }
         timerTv = view.findViewById<TextView>(R.id.timer).apply {
             text = SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(duration.toLong()))
@@ -95,17 +111,44 @@ open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLay
         }
     }
 
-    fun attachController(controller: RecorderController){
-        playerController = controller
+    fun attachRecorderController(controller: RecorderController){
+        recorder = controller
+    }
+
+    override fun attachPlayerController(playerController: PlayerController){
+        player = playerController
+    }
+
+    override fun updatePlayerPercent(duration: Int, currentPosition: Int) {
+        recView.updateProgression(currentPosition / duration.toFloat())
+    }
+
+    override fun <T> setText(title: T) {
+    }
+
+    override fun setAmplitudes(amplitudes: Array<Double>) {
+    }
+
+    override fun onPlay() {
+        playFab.setImageResource(R.drawable.ic_pause)
+    }
+
+    override fun onPause() {
+        playFab.setImageResource(R.drawable.ic_play)
+    }
+
+    override fun onComplete() {
+        playFab.setImageResource(R.drawable.ic_play)
     }
 
     fun addAmplitude(dy: Int) {
         recView.addAmplitude(dy)
     }
 
-    fun onComplete() {
+    fun onRecordComplete() {
         countDown.cancel()
-        recordFab.setImageResource(R.drawable.ic_reload)
+        recordFab.setImageResource(R.drawable.ic_check)
+        controlButtons.visibility = View.VISIBLE
     }
 
     fun onStart() {
@@ -118,10 +161,11 @@ open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLay
             override fun onFinish() {
                 recView.endLine()
                 timerTv.text = mTimeFormat.format(Date(0))
-                playerController.stopRecording(false)
+                recorder.stopRecording(false)
             }
         }.start()
         recordFab.setImageResource(R.drawable.ic_stop)
+        controlButtons.visibility = View.GONE
     }
 
     @ColorRes

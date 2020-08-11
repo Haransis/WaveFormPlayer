@@ -42,7 +42,6 @@
         android:tint="@color/colorPrimaryDark"
         custom:fabCustomSize="60dp"
         custom:maxImageSize="30dp"
-        custom:borderWidth="1dp"
         custom:backgroundTint="@android:color/white"
         custom:layout_constraintTop_toBottomOf="@id/recview"
         custom:layout_constraintBottom_toBottomOf="parent"
@@ -51,6 +50,9 @@
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/control_buttons"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         custom:constraint_referenced_ids="play,record_again"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -60,8 +62,8 @@
         android:src="@drawable/ic_play"
         android:clickable="true"
         android:focusable="true"
+        android:foreground="@drawable/fab_border"
         android:tint="@color/colorPrimaryDark"
-        custom:borderWidth="1dp"
         custom:backgroundTint="@android:color/white"
         custom:layout_constraintHorizontal_bias="0.3"
         custom:layout_constraintVertical_bias="0.4"
@@ -77,8 +79,8 @@
         android:src="@drawable/ic_reload"
         android:clickable="true"
         android:focusable="true"
+        android:foreground="@drawable/fab_border"
         android:tint="@color/colorPrimaryDark"
-        custom:borderWidth="1dp"
         custom:backgroundTint="@android:color/white"
         custom:layout_constraintVertical_bias="0.4"
         custom:layout_constraintHorizontal_bias="0.7"

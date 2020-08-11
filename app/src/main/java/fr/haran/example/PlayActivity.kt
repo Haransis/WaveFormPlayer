@@ -20,7 +20,7 @@ class PlayActivity : AppCompatActivity() {
         setContentView(R.layout.activity_play)
         val playerView = findViewById<PlayerView>(R.id.player_view)
         playerController = DefaultPlayerController(playerView).apply {
-            setListener(play = {
+            setPlayerListener(play = {
                 Toast.makeText(
                     this@PlayActivity,
                     "Play Clicked !",

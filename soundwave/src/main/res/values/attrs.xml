@@ -17,6 +17,7 @@
     </declare-styleable>
     <declare-styleable name="RecPlayerView">
         <attr name="rec_color" format="color"/>
+        <attr name="rec_playedColor" format="color"/>
         <attr name="rec_duration" format="integer"/>
         <attr name="rec_interval" format="integer"/>
     </declare-styleable>

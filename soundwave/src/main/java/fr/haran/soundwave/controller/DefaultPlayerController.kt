@@ -4,12 +4,12 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
-import fr.haran.soundwave.ui.PlayingView
+import fr.haran.soundwave.ui.ControllingView
 import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(var playingView: PlayingView):
+class DefaultPlayerController(var controllingView: ControllingView):
     PlayerController {
 
     private val mediaPlayer = MediaPlayer()
@@ -19,12 +19,12 @@ class DefaultPlayerController(var playingView: PlayingView):
     private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
-        playingView.attachPlayerController(this)
+        controllingView.attachPlayerController(this)
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener{ isPrepared = true }
         runnable = object: Runnable {
             override fun run() {
-                playingView.updatePlayerPercent(
+                controllingView.updatePlayerPercent(
                     mediaPlayer.duration,
                     mediaPlayer.currentPosition
                 )
@@ -72,7 +72,7 @@ class DefaultPlayerController(var playingView: PlayingView):
     }
 
     override fun <T>setTitle(title: T){
-        playingView.setText(title)
+        controllingView.setText(title)
     }
 
     override fun pause() {
@@ -112,7 +112,7 @@ class DefaultPlayerController(var playingView: PlayingView):
         resetMediaPlayer()
         mediaPlayer.setDataSource(context, uri)
         preparePlayer()
-        playingView.setAmplitudes(amplitudes)
+        controllingView.setAmplitudes(amplitudes)
     }
 
     @Throws(IOException::class)
@@ -120,7 +120,7 @@ class DefaultPlayerController(var playingView: PlayingView):
         resetMediaPlayer()
         mediaPlayer.setDataSource(url)
         preparePlayer()
-        playingView.setAmplitudes(amplitudes)
+        controllingView.setAmplitudes(amplitudes)
     }
 
     inline fun setPlayerListener(
@@ -136,17 +136,17 @@ class DefaultPlayerController(var playingView: PlayingView):
             }
 
             override fun onPlay(playerController: PlayerController) {
-                playingView.onPlay()
+                controllingView.onPlay()
                 play()
             }
 
             override fun onPause(playerController: PlayerController) {
-                playingView.onPause()
+                controllingView.onPause()
                 pause()
             }
 
             override fun onComplete(playerController: PlayerController) {
-                playingView.onComplete()
+                controllingView.onComplete()
                 complete()
             }
 

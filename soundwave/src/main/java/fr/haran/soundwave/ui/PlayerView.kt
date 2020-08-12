@@ -20,7 +20,7 @@ import kotlin.math.abs
 
 
 private const val TAG = "PlayerView"
-open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener, PlayingView{
+open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener, ControllingView{
 
     private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
     private var isScrolling: Boolean = false

@@ -28,7 +28,7 @@ private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs),
-PlayingView{
+ControllingView{
 
     lateinit var countDown: CountDownTimer
     private lateinit var timerTv: TextView
@@ -48,6 +48,10 @@ PlayingView{
             try {
                 recordColor = getColor(
                     R.styleable.RecPlayerView_rec_color, ContextCompat.getColor(context,
+                        R.color.colorPrimaryDark
+                    ))
+                playColor = getColor(
+                    R.styleable.RecPlayerView_rec_playedColor, ContextCompat.getColor(context,
                         R.color.colorPrimary
                     ))
                 duration = getInteger(R.styleable.RecPlayerView_rec_duration, 2*60*1000)
@@ -66,6 +70,7 @@ PlayingView{
             R.id.recview
         ).apply{
             recordColor = this@RecPlayerView.recordColor
+            playColor = this@RecPlayerView.playColor
         }
         recordFab = view.findViewById<FloatingActionButton>(R.id.record).apply{
             imageTintList = ColorStateList.valueOf(recordColor)
@@ -96,8 +101,10 @@ PlayingView{
     }
 
     private fun setRecViewColor() {
-        if (this::recView.isInitialized)
+        if (this::recView.isInitialized){
             recView.recordColor = this.recordColor
+            recView.playColor = this.playColor
+        }
     }
 
     private fun checkPermission(context: Context): Boolean{
@@ -131,14 +138,18 @@ PlayingView{
 
     override fun onPlay() {
         playFab.setImageResource(R.drawable.ic_pause)
+        recView.isPlaying = true
+        recView.updateProgression(0F)
     }
 
     override fun onPause() {
         playFab.setImageResource(R.drawable.ic_play)
+        recView.isPlaying = false
     }
 
     override fun onComplete() {
         playFab.setImageResource(R.drawable.ic_play)
+        recView.isPlaying = false
     }
 
     fun addAmplitude(dy: Int) {
@@ -170,6 +181,13 @@ PlayingView{
 
     @ColorRes
     var recordColor: Int
+        set(value){
+            field = value
+            setRecViewColor()
+        }
+
+    @ColorRes
+    var playColor: Int
         set(value){
             field = value
             setRecViewColor()

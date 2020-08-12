@@ -11,6 +11,8 @@
         android:id="@+id/rec_player_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        app:rec_color="@android:color/black"
+        app:rec_playedColor="@android:color/darker_gray"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

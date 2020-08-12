@@ -1,9 +1,8 @@
 package fr.haran.soundwave.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Path
+import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -13,20 +12,24 @@ import fr.haran.soundwave.R
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
+
 private const val TAG = "RecView"
 private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
+private const val STROKE_WIDTH = 3F
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var progression: Float = 0F
-    private var recordPaint: Paint
-    private var playPaint: Paint
-    private var isPlaying = false
+    private val recordPaint: Paint = Paint()
+    private val playPaint: Paint = Paint()
+    var isPlaying = false
     private var availableWidth by Delegates.notNull<Int>()
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
     private var barWidth by Delegates.notNull<Float>()
     private var barHeight by Delegates.notNull<Float>()
     private val waveForm: Path = Path()
+    private val measure = PathMeasure()
+    private val aCoordinates = floatArrayOf(0f, 0f)
 
     var samples: Int? = null
         set(value){
@@ -44,30 +47,33 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
             try {
                 recordColor = getColor(
                     R.styleable.RecView_recview_color, ContextCompat.getColor(context,
-                        R.color.colorPrimary
+                        R.color.colorPrimaryDark
                     ))
                 playColor = getColor(
                     R.styleable.RecView_recview_playedColor, ContextCompat.getColor(context,
-                        R.color.colorPrimaryDark
+                        R.color.colorPrimary
                     ))
             } finally {
                 recycle()
             }
         }
-        recordPaint = Paint().apply {
-            color = recordColor
+        initializePaint(recordPaint, recordColor)
+        initializePaint(playPaint, playColor)
+    }
+
+    private fun initializePaint(paint: Paint, paintColor: Int) {
+        paint.apply {
+            color = paintColor
             flags = Paint.ANTI_ALIAS_FLAG
-            strokeWidth = 20F
+            strokeWidth = STROKE_WIDTH
             style = Paint.Style.STROKE
         }
-        playPaint = recordPaint.apply { color = playColor }
     }
 
     @ColorRes
     var recordColor: Int
         set(value){
             field = value
-            invalidate()
             requestLayout()
         }
 
@@ -75,18 +81,13 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
     var playColor: Int
         set(value){
             field = value
-            invalidate()
             requestLayout()
         }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        recordPaint.apply {
-            color = recordColor
-            flags = Paint.ANTI_ALIAS_FLAG
-            strokeWidth = 3F
-            Paint.Style.STROKE
-        }
+        recordPaint.color = recordColor
+        playPaint.color = playColor
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -109,8 +110,10 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         canvas?.apply {
             drawPath(waveForm, recordPaint)
             if (isPlaying){
+                measure.setPath(waveForm, false)
+                measure.getPosTan(measure.length, aCoordinates, null)
+                clipRect((aCoordinates[0]*progression).toInt(),0,availableWidth,availableHeight)
                 drawPath(waveForm, playPaint)
-                clipRect((availableWidth*progression).toInt(),0,availableWidth,availableHeight)
             }
         }
     }

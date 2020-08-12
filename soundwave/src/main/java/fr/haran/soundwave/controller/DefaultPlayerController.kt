@@ -4,9 +4,7 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
-import android.util.Log
 import fr.haran.soundwave.ui.PlayingView
-import java.io.File
 import java.io.IOException
 
 private const val TAG = "PlayerController"
@@ -92,21 +90,26 @@ class DefaultPlayerController(var playingView: PlayingView):
     }
 
     override fun destroyPlayer() {
-        if (mediaPlayer.isPlaying) mediaPlayer.stop()
-        mediaPlayer.reset()
+        resetMediaPlayer()
         mediaPlayer.release()
         handler.removeCallbacks(runnable)
     }
 
+    private fun resetMediaPlayer() {
+        if (mediaPlayer.isPlaying) mediaPlayer.stop()
+        mediaPlayer.reset()
+    }
+
     @Throws(IOException::class)
     fun addAudioFileUri(context: Context, uri: Uri){
-        Log.d(TAG, "addAudioFileUri: ${File(uri.path!!).exists()}")
+        resetMediaPlayer()
         mediaPlayer.setDataSource(context, uri)
         preparePlayer()
     }
 
     @Throws(IOException::class)
     fun addAudioFileUri(context: Context, uri: Uri, amplitudes: Array<Double>){
+        resetMediaPlayer()
         mediaPlayer.setDataSource(context, uri)
         preparePlayer()
         playingView.setAmplitudes(amplitudes)
@@ -114,6 +117,7 @@ class DefaultPlayerController(var playingView: PlayingView):
 
     @Throws(IOException::class)
     fun addAudioUrl(url: String, amplitudes: Array<Double>){
+        resetMediaPlayer()
         mediaPlayer.setDataSource(url)
         preparePlayer()
         playingView.setAmplitudes(amplitudes)

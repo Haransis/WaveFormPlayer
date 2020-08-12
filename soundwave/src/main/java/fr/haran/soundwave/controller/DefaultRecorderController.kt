@@ -9,21 +9,17 @@ import android.os.Handler
 import android.os.Process.*
 import android.os.SystemClock
 import android.util.Log
-import androidx.core.os.postDelayed
 import fr.haran.soundwave.ui.RecPlayerView
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.ForkJoinPool
-import kotlin.experimental.and
 import kotlin.properties.Delegates
 
-private const val TAG = "DefaultRecorderControll"
-private const val BUFFER_ELEMENTS_TO_REC = 1024
+private const val TAG = "DefaultRecorderController"
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_CHANNELS: Int = android.media.AudioFormat.CHANNEL_IN_MONO
 private const val RECORDER_AUDIO_ENCODING: Int = android.media.AudioFormat.ENCODING_PCM_16BIT
-private const val BYTES_PER_ELEMENT = 2 // 2 bytes in 16bit format
 class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
 
     private var delta = 0
@@ -34,7 +30,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var bufferSize by Delegates.notNull<Int>()
     val amplitudes = mutableListOf(0)
     private lateinit var runnable: Runnable
-    private lateinit var runnableReal: Runnable
     private val handler = Handler()
     private lateinit var pcmPath: String
     lateinit var wavPath: String
@@ -72,26 +67,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING
         )
         recPlayerView.attachRecorderController(this)
-        val sData = ShortArray(bufferSize)
-        /*runnable = object: Runnable {
-            override fun run() {
-                shouldSample = true
-                if (isRecording)
-                    handler.postDelayed(this, recPlayerView.interval.toLong())
-                *//*setThreadPriority(THREAD_PRIORITY_LOWEST)
-                shouldSample = true
-                val currentTime = SystemClock.uptimeMillis()
-                recorder!!.read(sData, 0, bufferSize)
-                val iData = sData.map { it.toInt() }
-                val newAmplitude = iData.maxBy { kotlin.math.abs(it) } ?: 0
-                recPlayerView.addAmplitude(amplitudes.last() - newAmplitude)
-                amplitudes += newAmplitude
-                if (isRecording)
-                    handler.postAtTime(this, currentTime+recPlayerView.interval)*//*
-            }
-        }*/
-        runnableReal = Runnable { recPlayerView.addAmplitude(delta) }
-
+        runnable = Runnable { recPlayerView.addAmplitude(delta) }
     }
 
     override fun destroyRecorder() {
@@ -118,7 +94,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         isRecording = true
         recordingThread = Thread { writeAudioDataToFile() }
         recordingThread!!.start()
-        //handler.post(runnable)
         recordedBefore = true
         recorderListener.onStart(this)
     }
@@ -185,10 +160,9 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
                 val iData = sData.map { it.toInt() }
                 val newAmplitude = iData.maxBy { kotlin.math.abs(it) } ?: 0
                 delta = amplitudes.last() - newAmplitude
-                //recPlayerView.addAmplitude(amplitudes.last() - newAmplitude)
                 amplitudes += newAmplitude
                 start = now
-                handler.post(runnableReal)
+                handler.post(runnable)
             }
             try {
                 // writes the data to file from buffer
@@ -202,17 +176,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         } catch (e: IOException) {
             e.printStackTrace()
         }
-    }
-
-    private fun shortToByte(sData: ShortArray): ByteArray {
-        val shortArrsize: Int = sData.size
-        val bytes = ByteArray(shortArrsize * 2)
-        for (i in 0 until shortArrsize) {
-            bytes[i * 2] = (sData[i] and 0x00FF).toByte()
-            bytes[i * 2 + 1] = (sData[i].toInt() shr 8).toByte()
-            sData[i] = 0
-        }
-        return bytes
     }
 
     override fun stopRecording(delete: Boolean) {
@@ -229,7 +192,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             recorder = null
             recordingThread = null
         }
-        //handler.removeCallbacks(runnable)
+        handler.removeCallbacks(runnable)
     }
 
     @Throws(IOException::class)

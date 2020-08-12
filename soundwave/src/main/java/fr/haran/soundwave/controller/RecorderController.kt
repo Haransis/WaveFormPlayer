@@ -6,6 +6,6 @@ interface RecorderController {
     fun stopRecording(delete: Boolean)
     fun isRecording(): Boolean
     fun prepareRecorder()
-    fun destroyRecorder()
+    fun destroyController()
     fun setRecorderListener(recorderListener: RecorderListener): RecorderController
 }

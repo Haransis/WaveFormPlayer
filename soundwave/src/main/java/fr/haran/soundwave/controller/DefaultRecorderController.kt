@@ -5,6 +5,7 @@ import android.media.MediaRecorder
 import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
+import android.net.Uri
 import android.os.Handler
 import android.os.Process.*
 import android.os.SystemClock
@@ -34,6 +35,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private lateinit var pcmPath: String
     lateinit var wavPath: String
     private lateinit var recorderListener: RecorderListener
+    private var playerController: DefaultPlayerController? = DefaultPlayerController(recPlayerView)
 
     override fun toggle() {
         if (isRecording)
@@ -70,7 +72,13 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         runnable = Runnable { recPlayerView.addAmplitude(delta) }
     }
 
-    override fun destroyRecorder() {
+    override fun destroyController() {
+        destroyRecorder()
+        playerController?.destroyPlayer()
+        playerController = null
+    }
+
+    private fun destroyRecorder() {
         if (isRecording)
             stopRecording(true)
         else
@@ -101,7 +109,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private fun setAudioEffects() {
         if (AutomaticGainControl.isAvailable()) {
             val agc = AutomaticGainControl.create(recorder!!.audioSessionId)
-            //agc.g
             Log.d("AudioRecord", "AGC is " + if (agc.enabled) "enabled" else "disabled")
             agc.enabled = true
             Log.d(
@@ -181,7 +188,9 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     override fun stopRecording(delete: Boolean) {
         if (delete)
             deleteOldRecording()
-        rawToWave(File(pcmPath), File(wavPath))
+        else
+            rawToWave(File(pcmPath), File(wavPath))
+
         if (isRecording)
             recorderListener.onComplete(this)
 
@@ -193,6 +202,9 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             recordingThread = null
         }
         handler.removeCallbacks(runnable)
+
+        playerController?.addAudioFileUri(recPlayerView.context, Uri.parse("file://$wavPath"))
+        playerController?.setPlayerListener()
     }
 
     @Throws(IOException::class)

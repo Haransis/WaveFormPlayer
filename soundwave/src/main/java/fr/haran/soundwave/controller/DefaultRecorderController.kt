@@ -32,10 +32,16 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     val amplitudes = mutableListOf(0)
     private lateinit var runnable: Runnable
     private val handler = Handler()
-    private lateinit var pcmPath: String
-    lateinit var wavPath: String
+    private var pcmPath: String
+    var wavPath: String
     private lateinit var recorderListener: RecorderListener
     private var playerController: DefaultPlayerController? = DefaultPlayerController(recPlayerView)
+
+    init {
+        //TODO unique filename
+        pcmPath = "$defaultPath/test.pcm"
+        wavPath = "$defaultPath/test.wav"
+    }
 
     override fun toggle() {
         if (isRecording)
@@ -145,9 +151,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private fun writeAudioDataToFile() {
         setThreadPriority(THREAD_PRIORITY_AUDIO)
         // Write the output audio in byte
-        //TODO unique filename
-        pcmPath = "$defaultPath/test.pcm"
-        wavPath = "$defaultPath/test.wav"
         var start = SystemClock.elapsedRealtime()
         var now: Long
         val bData = ByteArray(bufferSize)

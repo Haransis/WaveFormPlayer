@@ -39,6 +39,7 @@ ControllingView{
     private lateinit var controlButtons: Group
     private lateinit var recorder: RecorderController
     private lateinit var player: PlayerController
+    private var alreadyRecorded = false
 
     init {
         context.theme.obtainStyledAttributes(
@@ -76,16 +77,20 @@ ControllingView{
             imageTintList = ColorStateList.valueOf(recordColor)
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
-                if (checkPermission(context)){
+                if (alreadyRecorded)
+                    recorder.validate()
+                else if (checkPermission(context))
                     recorder.toggle()
-                }
             }
         }
         controlButtons = view.findViewById(R.id.control_buttons)
         recordAgainFab = view.findViewById<FloatingActionButton>(R.id.record_again).apply {
             imageTintList = ColorStateList.valueOf(recordColor)
             foregroundTintList = ColorStateList.valueOf(recordColor)
-            setOnClickListener { recorder.toggle() }
+            setOnClickListener {
+                recorder.toggle()
+                alreadyRecorded = false
+            }
         }
         playFab = view.findViewById<FloatingActionButton>(R.id.play).apply {
             imageTintList = ColorStateList.valueOf(recordColor)
@@ -160,6 +165,7 @@ ControllingView{
         countDown.cancel()
         recordFab.setImageResource(R.drawable.ic_check)
         controlButtons.visibility = View.VISIBLE
+        alreadyRecorded = true
     }
 
     fun onStart() {

@@ -51,17 +51,20 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
                 amplitudes.clear()
                 amplitudes += 0
                 recPlayerView.resetAmplitudes()
-                deleteOldRecording()
+                deleteExpiredRecordings()
             }
             startRecording()
         }
     }
 
-    private fun deleteOldRecording() {
+    private fun deleteExpiredRecordings() {
         ForkJoinPool.commonPool().submit {
-            val fileToDelete = File(pcmPath)
-            if (fileToDelete.exists())
-                fileToDelete.canonicalFile.delete()
+            val pcmFile = File(pcmPath)
+            if (pcmFile.exists())
+                pcmFile.canonicalFile.delete()
+            val wavFile = File(wavPath)
+            if (wavFile.exists())
+                pcmFile.canonicalFile.delete()
         }
     }
 
@@ -95,6 +98,10 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     override fun setRecorderListener(recorderListener: RecorderListener): RecorderController {
         this.recorderListener = recorderListener
         return this
+    }
+
+    override fun validate() {
+        recorderListener.onValidate(this)
     }
 
     override fun startRecording() {
@@ -190,7 +197,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     override fun stopRecording(delete: Boolean) {
         if (delete)
-            deleteOldRecording()
+            deleteExpiredRecordings()
         else
             rawToWave(File(pcmPath), File(wavPath))
 
@@ -217,7 +224,10 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         try {
             input = DataInputStream(FileInputStream(rawFile))
             input.read(rawData)
-        } finally {
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
+        }
+        finally {
             input?.close()
         }
         var output: DataOutputStream? = null
@@ -256,21 +266,25 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         val size = f.length().toInt()
         val bytes = ByteArray(size)
         val tmpBuff = ByteArray(size)
-        val fis = FileInputStream(f)
         try {
-            var read: Int = fis.read(bytes, 0, size)
-            if (read < size) {
-                var remain = size - read
-                while (remain > 0) {
-                    read = fis.read(tmpBuff, 0, remain)
-                    System.arraycopy(tmpBuff, 0, bytes, size - remain, read)
-                    remain -= read
+            val fis = FileInputStream(f)
+            try {
+                var read: Int = fis.read(bytes, 0, size)
+                if (read < size) {
+                    var remain = size - read
+                    while (remain > 0) {
+                        read = fis.read(tmpBuff, 0, remain)
+                        System.arraycopy(tmpBuff, 0, bytes, size - remain, read)
+                        remain -= read
+                    }
                 }
+            } catch (e: IOException) {
+                throw e
+            } finally {
+                fis.close()
             }
-        } catch (e: IOException) {
-            throw e
-        } finally {
-            fis.close()
+        } catch (e: FileNotFoundException) {
+            e.printStackTrace()
         }
         return bytes
     }
@@ -301,7 +315,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     inline fun setRecorderListener(
         crossinline start: () -> Unit = {},
-        crossinline complete: () -> Unit = {}
+        crossinline complete: () -> Unit = {},
+        crossinline validate: () -> Unit = {}
     ){
         setRecorderListener(object: RecorderListener {
 
@@ -315,6 +330,10 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             override fun onStart(recorderController: RecorderController) {
                 recPlayerView.onStart()
                 start()
+            }
+
+            override fun onValidate(recorderController: RecorderController) {
+                validate()
             }
         })
     }

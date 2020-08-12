@@ -8,4 +8,5 @@ interface RecorderController {
     fun prepareRecorder()
     fun destroyController()
     fun setRecorderListener(recorderListener: RecorderListener): RecorderController
+    fun validate()
 }

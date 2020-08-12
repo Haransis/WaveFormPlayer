@@ -21,10 +21,10 @@ class RecActivity : AppCompatActivity(), DefaultRecorderController.InformationRe
                 it, this
             ).apply {
                 setRecorderListener(
-                    start = {
+                    validate = {
                         Toast.makeText(
                             this@RecActivity,
-                            "Rec Clicked !",
+                            "Sound Recorded !",
                             Toast.LENGTH_SHORT
                         ).show()}
                     )

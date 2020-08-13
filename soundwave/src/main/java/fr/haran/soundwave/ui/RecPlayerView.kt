@@ -172,8 +172,8 @@ ControllingView, View.OnTouchListener{
         recView.isPlaying = false
     }
 
-    fun addAmplitude(dy: Int) {
-        recView.addAmplitude(dy)
+    fun addAmplitude(y: Int) {
+        recView.addAmplitude(y)
     }
 
     fun addLoader(){

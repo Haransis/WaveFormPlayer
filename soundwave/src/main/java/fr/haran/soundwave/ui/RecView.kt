@@ -18,6 +18,7 @@ private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
 private const val STROKE_WIDTH = 3F
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
+    private var iteration = 0
     private var progression: Float = 0F
     private val recordPaint: Paint = Paint()
     private val playPaint: Paint = Paint()
@@ -118,14 +119,16 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         }
     }
 
-    fun addAmplitude(dy: Int){
-        waveForm.rLineTo(barWidth, dy*barHeight)
+    fun addAmplitude(y: Int){
+        waveForm.lineTo(iteration*barWidth, origin+y*barHeight)
+        iteration++
         invalidate()
     }
 
     fun resetAmplitudes() {
         waveForm.reset()
         waveForm.moveTo(0F, origin.toFloat())
+        iteration = 0
         invalidate()
     }
 

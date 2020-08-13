@@ -32,13 +32,21 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var recordingThread = Thread { writeAudioDataToFile() }
     private var bufferSize by Delegates.notNull<Int>()
     val amplitudes = mutableListOf(0)
-    private var runnable = Runnable { recPlayerView.addAmplitude(delta) }
     private val handler = Handler()
     private lateinit var pcmPath: String
     lateinit var wavPath: String
     private lateinit var recorderListener: RecorderListener
     private var playerController: DefaultPlayerController = DefaultPlayerController(recPlayerView).apply {
         setPlayerListener()
+    }
+    private var runnable = object: Runnable {
+        override fun run() {
+            Log.d(TAG, "run: $delta")
+            val currentTime = SystemClock.uptimeMillis()
+            recPlayerView.addAmplitude(amplitudes.last())
+            if (isRecording)
+                handler.postAtTime(this, currentTime+recPlayerView.interval)
+        }
     }
 
     override fun toggle() {
@@ -156,7 +164,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     private fun writeAudioDataToFile() {
         setThreadPriority(THREAD_PRIORITY_AUDIO)
-        handler.post {recPlayerView.startCountDown()}
         // Write the output audio in byte
         var start = SystemClock.elapsedRealtime()
         var now: Long
@@ -167,6 +174,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
         }
+        handler.post { recPlayerView.startCountDown() }
+        handler.post(runnable)
         while (isRecording) {
             recorder!!.read(bData, 0, bufferSize)
             now = SystemClock.elapsedRealtime()
@@ -179,19 +188,16 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
                 delta = amplitudes.last() - newAmplitude
                 amplitudes += newAmplitude
                 start = now
-                handler.post(runnable)
             }
             try {
                 // writes the data to file from buffer
                 os?.write(bData)
-                Log.d(TAG, "writeAudioDataToFile: write $bData")
             } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
         try {
             os?.close()
-            Log.d(TAG, "writeAudioDataToFile: closed")
         } catch (e: IOException) {
             e.printStackTrace()
         }

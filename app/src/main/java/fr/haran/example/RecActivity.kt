@@ -2,6 +2,7 @@ package fr.haran.example
 
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import fr.haran.soundwave.controller.DefaultRecorderController
@@ -19,17 +20,18 @@ class RecActivity : AppCompatActivity(), DefaultRecorderController.InformationRe
         recorderController = applicationContext.externalCacheDir?.absolutePath?.let { it ->
             DefaultRecorderController(findViewById(R.id.rec_player_view),
                 it, this
-            ).apply {
-                setRecorderListener(
-                    validate = {
-                        Toast.makeText(
-                            this@RecActivity,
-                            "Sound Recorded !",
-                            Toast.LENGTH_SHORT
-                        ).show()}
-                    )
-            }
+            )
         }
+        recorderController?.setRecorderListener(
+            start = { window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) },
+            complete = { window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)},
+            validate = {
+                Toast.makeText(
+                    this@RecActivity,
+                    "Sound Recorded !",
+                    Toast.LENGTH_SHORT
+                ).show()}
+        )
         recorderController?.prepareRecorder()
     }
 

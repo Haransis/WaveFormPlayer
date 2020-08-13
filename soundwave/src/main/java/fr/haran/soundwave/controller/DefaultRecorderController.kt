@@ -1,5 +1,6 @@
 package fr.haran.soundwave.controller
 
+import android.icu.text.SimpleDateFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.audiofx.AcousticEchoCanceler
@@ -14,6 +15,7 @@ import fr.haran.soundwave.ui.RecPlayerView
 import java.io.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.*
 import java.util.concurrent.ForkJoinPool
 import kotlin.properties.Delegates
 
@@ -27,21 +29,15 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var recordedBefore = false
     private var isRecording = false
     private var recorder: AudioRecord? = null
-    private var recordingThread: Thread? = null
+    private var recordingThread = Thread { writeAudioDataToFile() }
     private var bufferSize by Delegates.notNull<Int>()
     val amplitudes = mutableListOf(0)
     private lateinit var runnable: Runnable
     private val handler = Handler()
-    private var pcmPath: String
-    var wavPath: String
+    private lateinit var pcmPath: String
+    lateinit var wavPath: String
     private lateinit var recorderListener: RecorderListener
     private var playerController: DefaultPlayerController? = DefaultPlayerController(recPlayerView)
-
-    init {
-        //TODO unique filename
-        pcmPath = "$defaultPath/test.pcm"
-        wavPath = "$defaultPath/test.wav"
-    }
 
     override fun toggle() {
         if (isRecording)
@@ -105,6 +101,10 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun startRecording() {
+        val date = Date()
+        val dateFormat = SimpleDateFormat("ddMMyyyy-ssmmhh", Locale.getDefault())
+        pcmPath = "$defaultPath/${dateFormat.format(date)}.pcm"
+        wavPath = "$defaultPath/${dateFormat.format(date)}.wav"
         recorder = AudioRecord(
             MediaRecorder.AudioSource.MIC,
             RECORDER_SAMPLERATE, RECORDER_CHANNELS,
@@ -113,8 +113,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         setAudioEffects()
         recorder!!.startRecording()
         isRecording = true
-        recordingThread = Thread { writeAudioDataToFile() }
-        recordingThread!!.start()
+        recordingThread.start()
         recordedBefore = true
         recorderListener.onStart(this)
     }
@@ -184,18 +183,22 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             try {
                 // writes the data to file from buffer
                 os?.write(bData)
+                Log.d(TAG, "writeAudioDataToFile: write $bData")
             } catch (e: IOException) {
                 e.printStackTrace()
             }
         }
         try {
             os?.close()
+            Log.d(TAG, "writeAudioDataToFile: closed")
         } catch (e: IOException) {
             e.printStackTrace()
         }
+        Log.d(TAG, "writeAudioDataToFile: ${File(pcmPath).exists()}")
     }
 
     override fun stopRecording(delete: Boolean) {
+        Log.d(TAG, "stopRecording: $delete")
         if (delete)
             deleteExpiredRecordings()
         else
@@ -204,12 +207,13 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         if (isRecording)
             recorderListener.onComplete(this)
 
+        //recordingThread.interrupt()
+
         recorder?.let {
             isRecording = false
             it.stop()
             it.release()
             recorder = null
-            recordingThread = null
         }
         handler.removeCallbacks(runnable)
 

@@ -10,6 +10,7 @@ import android.icu.text.SimpleDateFormat
 import android.os.CountDownTimer
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import androidx.annotation.ColorRes
@@ -22,15 +23,19 @@ import fr.haran.soundwave.R
 import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.controller.RecorderController
 import java.util.*
+import kotlin.math.abs
 
 
 private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs),
-ControllingView{
+ControllingView, View.OnTouchListener{
 
+    private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
     lateinit var countDown: CountDownTimer
+    private var firstEventX: Float? = null
+    private var isScrolling: Boolean = false
     private lateinit var timerTv: TextView
     private lateinit var recView: RecView
     private lateinit var recordFab: FloatingActionButton
@@ -72,6 +77,7 @@ ControllingView{
         ).apply{
             recordColor = this@RecPlayerView.recordColor
             playColor = this@RecPlayerView.playColor
+            setOnTouchListener(this@RecPlayerView)
         }
         recordFab = view.findViewById<FloatingActionButton>(R.id.record).apply{
             imageTintList = ColorStateList.valueOf(recordColor)
@@ -79,8 +85,9 @@ ControllingView{
             setOnClickListener {
                 if (alreadyRecorded)
                     recorder.validate()
-                else if (checkPermission(context))
+                else if (checkPermission(context)){
                     recorder.toggle()
+                }
             }
         }
         controlButtons = view.findViewById(R.id.control_buttons)
@@ -90,6 +97,8 @@ ControllingView{
             setOnClickListener {
                 recorder.toggle()
                 alreadyRecorded = false
+                if (::player.isInitialized && player.isPlaying())
+                    player.destroyPlayer()
             }
         }
         playFab = view.findViewById<FloatingActionButton>(R.id.play).apply {
@@ -132,7 +141,8 @@ ControllingView{
     }
 
     override fun updatePlayerPercent(duration: Int, currentPosition: Int) {
-        recView.updateProgression(currentPosition / duration.toFloat())
+        if(!isScrolling)
+            recView.updateProgression(currentPosition / duration.toFloat())
     }
 
     override fun <T> setText(title: T) {
@@ -220,5 +230,54 @@ ControllingView{
 
     fun resetAmplitudes() {
         recView.resetAmplitudes()
+    }
+
+    override fun onTouch(v: View, event: MotionEvent): Boolean {
+        return if (::player.isInitialized && player.isPlaying()){
+            when(event.actionMasked){
+                MotionEvent.ACTION_DOWN -> true
+                MotionEvent.ACTION_MOVE -> {
+                    if (isScrolling) {
+                        recView.updateProgression(event.x / recView.getRealWidth())
+                        true
+                    } else {
+                        val xDiff = calculateDistanceX(event)
+                        if (abs(xDiff) > mTouchSlop) {
+                            this.parent.requestDisallowInterceptTouchEvent(true)
+                            isScrolling = true
+                            recView.updateProgression(event.x / recView.getRealWidth())
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    this.parent.requestDisallowInterceptTouchEvent(false)
+                    firstEventX = null
+                    isScrolling = false
+                    false
+                }
+                MotionEvent.ACTION_UP -> {
+                    this.parent.requestDisallowInterceptTouchEvent(false)
+                    firstEventX = null
+                    isScrolling = false
+                    player.setPosition(event.x / recView.getRealWidth())
+                    v.performClick()
+                    true
+                }
+                else -> false
+            }
+        } else
+            false
+    }
+
+    private fun calculateDistanceX(event: MotionEvent): Int{
+        return if (firstEventX == null){
+            firstEventX = event.x
+            0
+        } else {
+            (event.x - firstEventX!!).toInt()
+        }
     }
 }

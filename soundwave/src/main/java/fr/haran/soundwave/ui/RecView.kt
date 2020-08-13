@@ -138,4 +138,10 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         progression = percent
         invalidate()
     }
+
+    fun getRealWidth(): Float{
+        measure.setPath(waveForm, false)
+        measure.getPosTan(measure.length, aCoordinates, null)
+        return aCoordinates[0]
+    }
 }

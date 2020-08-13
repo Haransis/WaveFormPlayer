@@ -96,7 +96,7 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     private fun resetMediaPlayer() {
-        if (mediaPlayer.isPlaying) mediaPlayer.stop()
+        //if (mediaPlayer.isPlaying) mediaPlayer.stop()
         mediaPlayer.reset()
     }
 

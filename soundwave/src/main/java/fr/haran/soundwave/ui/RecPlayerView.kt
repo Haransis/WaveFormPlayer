@@ -12,6 +12,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -42,6 +43,7 @@ ControllingView, View.OnTouchListener{
     private lateinit var playFab: FloatingActionButton
     private lateinit var recordAgainFab: FloatingActionButton
     private lateinit var controlButtons: Group
+    private lateinit var loader: ProgressBar
     private lateinit var recorder: RecorderController
     private lateinit var player: PlayerController
     private var alreadyRecorded = false
@@ -104,12 +106,15 @@ ControllingView, View.OnTouchListener{
         playFab = view.findViewById<FloatingActionButton>(R.id.play).apply {
             imageTintList = ColorStateList.valueOf(recordColor)
             foregroundTintList = ColorStateList.valueOf(recordColor)
-            setOnClickListener { player.toggle() }
+            setOnClickListener {
+                player.toggle()
+            }
         }
         timerTv = view.findViewById<TextView>(R.id.timer).apply {
             text = SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(duration.toLong()))
             setTextColor(recordColor)
         }
+        loader = view.findViewById(R.id.loader)
         setRecViewColor()
         setRecViewSamples()
     }
@@ -171,15 +176,27 @@ ControllingView, View.OnTouchListener{
         recView.addAmplitude(dy)
     }
 
+    fun addLoader(){
+        recordFab.visibility = View.INVISIBLE
+        loader.visibility = View.VISIBLE
+    }
+
     fun onRecordComplete() {
         countDown.cancel()
         recordFab.setImageResource(R.drawable.ic_check)
+        recordFab.visibility = View.VISIBLE
         controlButtons.visibility = View.VISIBLE
+        loader.visibility = View.GONE
         alreadyRecorded = true
     }
 
     fun onStart() {
-        val mTimeFormat = SimpleDateFormat("mm:ss", Locale.FRENCH)
+        recordFab.setImageResource(R.drawable.ic_stop)
+        controlButtons.visibility = View.GONE
+    }
+
+    fun startCountDown(){
+        val mTimeFormat = SimpleDateFormat("mm:ss", Locale.getDefault())
         countDown = object : CountDownTimer(duration.toLong(), 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 timerTv.text = mTimeFormat.format(Date(millisUntilFinished))
@@ -191,8 +208,6 @@ ControllingView, View.OnTouchListener{
                 recorder.stopRecording(false)
             }
         }.start()
-        recordFab.setImageResource(R.drawable.ic_stop)
-        controlButtons.visibility = View.GONE
     }
 
     @ColorRes

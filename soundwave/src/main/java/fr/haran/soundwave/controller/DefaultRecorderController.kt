@@ -32,12 +32,14 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var recordingThread = Thread { writeAudioDataToFile() }
     private var bufferSize by Delegates.notNull<Int>()
     val amplitudes = mutableListOf(0)
-    private lateinit var runnable: Runnable
+    private var runnable = Runnable { recPlayerView.addAmplitude(delta) }
     private val handler = Handler()
     private lateinit var pcmPath: String
     lateinit var wavPath: String
     private lateinit var recorderListener: RecorderListener
-    private var playerController: DefaultPlayerController? = DefaultPlayerController(recPlayerView)
+    private var playerController: DefaultPlayerController = DefaultPlayerController(recPlayerView).apply {
+        setPlayerListener()
+    }
 
     override fun toggle() {
         if (isRecording)
@@ -74,13 +76,11 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING
         )
         recPlayerView.attachRecorderController(this)
-        runnable = Runnable { recPlayerView.addAmplitude(delta) }
     }
 
     override fun destroyController() {
         destroyRecorder()
-        playerController?.destroyPlayer()
-        playerController = null
+        playerController.destroyPlayer()
     }
 
     private fun destroyRecorder() {
@@ -156,6 +156,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
     private fun writeAudioDataToFile() {
         setThreadPriority(THREAD_PRIORITY_AUDIO)
+        handler.post {recPlayerView.startCountDown()}
         // Write the output audio in byte
         var start = SystemClock.elapsedRealtime()
         var now: Long
@@ -194,15 +195,15 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         } catch (e: IOException) {
             e.printStackTrace()
         }
-        Log.d(TAG, "writeAudioDataToFile: ${File(pcmPath).exists()}")
+        rawToWave(File(pcmPath), File(wavPath))
+        playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$wavPath"))
+        handler.post { recPlayerView.onRecordComplete() }
     }
 
     override fun stopRecording(delete: Boolean) {
         Log.d(TAG, "stopRecording: $delete")
         if (delete)
             deleteExpiredRecordings()
-        else
-            rawToWave(File(pcmPath), File(wavPath))
 
         if (isRecording)
             recorderListener.onComplete(this)
@@ -216,9 +217,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             recorder = null
         }
         handler.removeCallbacks(runnable)
-
-        playerController?.addAudioFileUri(recPlayerView.context, Uri.parse("file://$wavPath"))
-        playerController?.setPlayerListener()
     }
 
     @Throws(IOException::class)
@@ -325,7 +323,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         setRecorderListener(object: RecorderListener {
 
             override fun onComplete(recorderController: RecorderController) {
-                recPlayerView.onRecordComplete()
+                recPlayerView.addLoader()
                 retriever?.setPath(wavPath)
                 retriever?.setAmplitudes(amplitudes)
                 complete()

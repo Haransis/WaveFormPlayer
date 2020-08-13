@@ -6,6 +6,7 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import fr.haran.soundwave.controller.DefaultRecorderController
+import java.io.File
 
 private const val TAG = "RecActivity"
 class RecActivity : AppCompatActivity(), DefaultRecorderController.InformationRetriever {
@@ -37,8 +38,13 @@ class RecActivity : AppCompatActivity(), DefaultRecorderController.InformationRe
 
     override fun onDestroy() {
         super.onDestroy()
-        recorderController?.destroyController()
-        recorderController = null
+        recorderController?.let {
+            val wavFile = File(it.wavPath)
+            if (wavFile.exists())
+                wavFile.canonicalFile.delete()
+            it.destroyController()
+            recorderController = null
+        }
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

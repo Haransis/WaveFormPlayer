@@ -41,7 +41,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
     private var runnable = object: Runnable {
         override fun run() {
-            Log.d(TAG, "run: $delta")
             val currentTime = SystemClock.uptimeMillis()
             recPlayerView.addAmplitude(amplitudes.last())
             if (isRecording)
@@ -64,14 +63,12 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     private fun deleteExpiredRecordings() {
-        ForkJoinPool.commonPool().submit {
-            val pcmFile = File(pcmPath)
-            if (pcmFile.exists())
-                pcmFile.canonicalFile.delete()
-            val wavFile = File(wavPath)
-            if (wavFile.exists())
-                pcmFile.canonicalFile.delete()
-        }
+        val pcmFile = File(pcmPath)
+        if (pcmFile.exists())
+            pcmFile.canonicalFile.delete()
+        val wavFile = File(wavPath)
+        if (wavFile.exists())
+            wavFile.canonicalFile.delete()
     }
 
     override fun isRecording(): Boolean {
@@ -207,7 +204,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun stopRecording(delete: Boolean) {
-        Log.d(TAG, "stopRecording: $delete")
         if (delete)
             deleteExpiredRecordings()
 
@@ -267,6 +263,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         } finally {
             output?.close()
         }
+        rawFile.canonicalFile.delete()
     }
 
     @Throws(IOException::class)

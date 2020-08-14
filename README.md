@@ -4,9 +4,9 @@
 </p>
 
 # WaveFormPlayer
-An Android library to create visualization of a given sound. This is a very basic implementation, use at your own risk.
+An Android library to create visualization of a given sound. It also supports a wav recorder with sound wave visualization. This is a very basic implementation, use at your own risk.
 
-Note that the library does not build the amplitudes by itself.
+Note that the library does not build the amplitudes by itself when reading from a file.
 
 ## Installation
 ### Gradle
@@ -23,7 +23,7 @@ Add it in your root build.gradle at the end of repositories:
 2. Add the dependency in Gradle
 ```
     dependencies {
-       implementation 'com.github.Haransis:WaveFormPlayer:1.1.2'
+       implementation 'com.github.Haransis:WaveFormPlayer:1.2.0'
     }
 ```
 
@@ -42,22 +42,22 @@ Add it in your root build.gradle at the end of repositories:
 <dependency>
     <groupId>com.github.Haransis</groupId>
     <artifactId>WaveFormPlayer</artifactId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
 ## Usage
+### Player
 1. Add the player view in your layout :
 ```
 <fr.haran.soundwave.ui.PlayerView
     android:id="@+id/player_view"
-    android:layout_width="match_parent"
-    android:layout_height="200dp"
     app:fontName="ibm_plex_mono_regular.ttf"
     app:title="Music Title"
     app:waveDb="true"
     app:mainColor="@android:color/black"
-    app:secondaryColor="@android:color/darker_gray"/>
+    app:secondaryColor="@android:color/darker_gray"
+    ... />
 ```
 
 2. In your Activity, create a custom controller implementing the PlayerController interface or use the default one :
@@ -90,9 +90,42 @@ try {
 ```
 view.addAudioUrl(url,amplitudes)
 ```
-Note : you need to add the Internet permission in your manifest
+The amplitudes are an array of double inside [-1.0; 1.0].
 
-For a more detailed use case application, please have a look at the example app in the repository.
+4. Do not forget to destroy the player inside the OnDestroy method of your Activity.
+```
+playerController.destroyPlayer()
+```
+
+### Recorder
+The recorder ressembles to the player a lot but here is a quick tutorial.
+1. Add the recorder view in your layout
+```
+<fr.haran.soundwave.ui.RecPlayerView
+        android:id="@+id/rec_player_view"
+        app:rec_color="@android:color/black"
+        app:rec_playedColor="@android:color/darker_gray" 
+        ... />
+```
+
+2. In your Activity, create a custom controller implementing the RecorderController interface or use the default one (You need to reference the view, and the path where the files will be created) :
+```
+recorderController = DefaultRecorderController(findViewById(R.id.rec_player_view), applicationContext.externalCacheDir?.absolutePath?)
+```
+
+3. Set a listener and prepare the controller
+```
+recorderController.setRecorderListener(validate = {...})
+recorderController.prepareRecorder()
+```
+Using the default listener is perfectly fine but you should at least use the validate function to use the files.
+
+4. Do not forget to destroy the recorder inside the OnDestroy method of your Activity.
+```
+recorderController.destroyPlayer()
+```
+For a more detailed implementation, please have a look at the example app in the repository.
 
 ## Building the amplitudes
 As mentionned before, for now this library does not implement the calculation of the amplitudes so you should implement this by yourself. For my use case, a static array was enough.
+Moreover the formats the recorder and the player uses are different. This will be solved soon.

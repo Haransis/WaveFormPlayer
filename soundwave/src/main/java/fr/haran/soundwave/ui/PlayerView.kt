@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -21,7 +20,7 @@ import kotlin.math.abs
 
 
 private const val TAG = "PlayerView"
-open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener{
+open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener, ControllingView{
 
     private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
     private var isScrolling: Boolean = false
@@ -56,38 +55,38 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         initView(context)
     }
 
-    fun onPlay(){
+    override fun onPlay(){
         play.setImageResource(R.drawable.ic_play)
         play.visibility = View.GONE
         pause.visibility = View.VISIBLE
     }
 
-    fun onPause(){
+    override fun onPause(){
         play.visibility = View.VISIBLE
         pause.visibility = View.GONE
     }
 
-    fun onComplete(){
+    override fun onComplete(){
         play.setImageResource(R.drawable.ic_reload)
         timer.text = Utils.millisToString(0)
         play.visibility = View.VISIBLE
         pause.visibility = View.GONE
     }
 
-    fun updatePlayerPercent(duration: Int, currentTimeStamp: Int){
+    override fun updatePlayerPercent(duration: Int, currentPosition: Int){
         if(!isScrolling)
-            soundWaveView.updateProgression(currentTimeStamp / duration.toFloat())
-        timer.text = Utils.millisToString(if (duration <= currentTimeStamp) 0
-            else (duration - currentTimeStamp).toLong() )
+            soundWaveView.updateProgression(currentPosition / duration.toFloat())
+        timer.text = Utils.millisToString(if (duration <= currentPosition) 0
+            else (duration - currentPosition).toLong() )
     }
 
-    fun attachController(controller: PlayerController){
+    override fun attachPlayerController(controller: PlayerController){
         playerController = controller
     }
 
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
-        val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, null)
+        val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, this, true)
         soundWaveView = view.findViewById<SoundWaveView>(
             R.id.sound_wave_view
         ).apply{
@@ -109,21 +108,21 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             text = this@PlayerView.text
         }
         timer = view.findViewById(R.id.duration)
-        this.addView(view)
+        setSoundWaveColor()
     }
 
     private fun setSoundWaveColor(){
         if (this::soundWaveView.isInitialized){
-            soundWaveView.playedColor = mainColor
-            soundWaveView.nonPlayedColor = secondaryColor
+            soundWaveView.nonPlayedColor = mainColor
+            soundWaveView.playedColor = secondaryColor
         }
     }
 
-    fun setAmplitudes(amplitudes: Array<Double>){
+    override fun setAmplitudes(amplitudes: Array<Double>){
         soundWaveView.amplitudes = amplitudes
     }
 
-    fun <T>setText(title: T){
+    override fun <T>setText(title: T){
         this.title.text = title as CharSequence
     }
 

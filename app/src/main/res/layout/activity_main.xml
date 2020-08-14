@@ -4,32 +4,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/container"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/hello_world"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/play"
+        android:text="@string/playerview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Amplitude simple"
-        android:textSize="25sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.233" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/rec"/>
 
-    <fr.haran.soundwave.ui.PlayerView
-        android:id="@+id/player_view"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        app:title="Music Title"
-        app:waveDb="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/hello_world"
-        app:mainColor="@android:color/black"
-        app:secondaryColor="@android:color/darker_gray"/>
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/rec"
+        android:text="@string/recordingview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/play"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -97,19 +97,19 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
             color = playedColor
             flags = ANTI_ALIAS_FLAG
             strokeWidth = 3.1F
-            if (!isDb)
-                style = Paint.Style.STROKE
+            style = if (!isDb)
+                Paint.Style.STROKE
             else
-                style = Paint.Style.FILL_AND_STROKE
+                Paint.Style.FILL_AND_STROKE
         }
         nonPlayedPaint.apply {
             color = nonPlayedColor
             flags = ANTI_ALIAS_FLAG
             strokeWidth = 3F
-            if (!isDb)
-                style = Paint.Style.STROKE
+            style = if (!isDb)
+                Paint.Style.STROKE
             else
-                style = Paint.Style.FILL_AND_STROKE
+                Paint.Style.FILL_AND_STROKE
         }
     }
 

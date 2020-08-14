@@ -4,14 +4,12 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
-import android.text.SpannableString
-import android.text.SpannableStringBuilder
-import fr.haran.soundwave.ui.PlayerView
+import fr.haran.soundwave.ui.ControllingView
 import java.io.IOException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(var playerView: PlayerView):
+class DefaultPlayerController(var controllingView: ControllingView):
     PlayerController {
 
     private val mediaPlayer = MediaPlayer()
@@ -21,12 +19,12 @@ class DefaultPlayerController(var playerView: PlayerView):
     private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
-        playerView.attachController(this)
+        controllingView.attachPlayerController(this)
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener{ isPrepared = true }
         runnable = object: Runnable {
             override fun run() {
-                playerView.updatePlayerPercent(
+                controllingView.updatePlayerPercent(
                     mediaPlayer.duration,
                     mediaPlayer.currentPosition
                 )
@@ -74,7 +72,7 @@ class DefaultPlayerController(var playerView: PlayerView):
     }
 
     override fun <T>setTitle(title: T){
-        playerView.setText(title)
+        controllingView.setText(title)
     }
 
     override fun pause() {
@@ -92,27 +90,40 @@ class DefaultPlayerController(var playerView: PlayerView):
     }
 
     override fun destroyPlayer() {
-        if (mediaPlayer.isPlaying) mediaPlayer.stop()
-        mediaPlayer.reset()
+        resetMediaPlayer()
         mediaPlayer.release()
         handler.removeCallbacks(runnable)
     }
 
+    private fun resetMediaPlayer() {
+        //if (mediaPlayer.isPlaying) mediaPlayer.stop()
+        mediaPlayer.reset()
+    }
+
     @Throws(IOException::class)
-    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: Array<Double>){
+    fun addAudioFileUri(context: Context, uri: Uri){
+        resetMediaPlayer()
         mediaPlayer.setDataSource(context, uri)
         preparePlayer()
-        playerView.setAmplitudes(amplitudes)
+    }
+
+    @Throws(IOException::class)
+    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: Array<Double>){
+        resetMediaPlayer()
+        mediaPlayer.setDataSource(context, uri)
+        preparePlayer()
+        controllingView.setAmplitudes(amplitudes)
     }
 
     @Throws(IOException::class)
     fun addAudioUrl(url: String, amplitudes: Array<Double>){
+        resetMediaPlayer()
         mediaPlayer.setDataSource(url)
         preparePlayer()
-        playerView.setAmplitudes(amplitudes)
+        controllingView.setAmplitudes(amplitudes)
     }
 
-    inline fun setListener(
+    inline fun setPlayerListener(
         crossinline prepare: () -> Unit = {},
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
@@ -125,17 +136,17 @@ class DefaultPlayerController(var playerView: PlayerView):
             }
 
             override fun onPlay(playerController: PlayerController) {
-                playerView.onPlay()
+                controllingView.onPlay()
                 play()
             }
 
             override fun onPause(playerController: PlayerController) {
-                playerView.onPause()
+                controllingView.onPause()
                 pause()
             }
 
             override fun onComplete(playerController: PlayerController) {
-                playerView.onComplete()
+                controllingView.onComplete()
                 complete()
             }
 

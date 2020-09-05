@@ -15,29 +15,28 @@ class DefaultPlayerController(var controllingView: ControllingView):
     private val mediaPlayer = MediaPlayer()
     private val handler = Handler()
     private var isPrepared = false
-    private lateinit var runnable: Runnable
+    private var runnable: Runnable = object: Runnable {
+        override fun run() {
+            controllingView.updatePlayerPercent(
+                mediaPlayer.duration,
+                mediaPlayer.currentPosition
+            )
+            playerListener.onDurationProgress(
+                this@DefaultPlayerController,
+                mediaPlayer.duration,
+                mediaPlayer.currentPosition
+            )
+
+            if (mediaPlayer.isPlaying)
+                handler.postDelayed(this, INTERVAL)
+        }
+    }
     private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
         controllingView.attachPlayerController(this)
         mediaPlayer.prepareAsync()
         mediaPlayer.setOnPreparedListener{ isPrepared = true }
-        runnable = object: Runnable {
-            override fun run() {
-                controllingView.updatePlayerPercent(
-                    mediaPlayer.duration,
-                    mediaPlayer.currentPosition
-                )
-                playerListener.onDurationProgress(
-                    this@DefaultPlayerController,
-                    mediaPlayer.duration,
-                    mediaPlayer.currentPosition
-                )
-
-                if (mediaPlayer.isPlaying)
-                    handler.postDelayed(this, INTERVAL)
-            }
-        }
         mediaPlayer.setOnCompletionListener {
             playerListener.onComplete(this)
             handler.removeCallbacks(runnable)

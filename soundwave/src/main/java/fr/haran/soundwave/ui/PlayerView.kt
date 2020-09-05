@@ -80,8 +80,8 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             else (duration - currentPosition).toLong() )
     }
 
-    override fun attachPlayerController(controller: PlayerController){
-        playerController = controller
+    override fun attachPlayerController(playerController: PlayerController){
+        this.playerController = playerController
     }
 
     @SuppressLint("InflateParams")
@@ -90,8 +90,8 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         soundWaveView = view.findViewById<SoundWaveView>(
             R.id.sound_wave_view
         ).apply{
-            playedColor = secondaryColor
-            nonPlayedColor = mainColor
+            playedColor = mainColor
+            nonPlayedColor = secondaryColor
             isDb = this@PlayerView.isDb
             setOnTouchListener(this@PlayerView)
         }
@@ -113,13 +113,13 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
 
     private fun setSoundWaveColor(){
         if (this::soundWaveView.isInitialized){
-            soundWaveView.nonPlayedColor = mainColor
-            soundWaveView.playedColor = secondaryColor
+            soundWaveView.nonPlayedColor = secondaryColor
+            soundWaveView.playedColor = mainColor
         }
     }
 
     override fun setAmplitudes(amplitudes: Array<Double>){
-        soundWaveView.amplitudes = amplitudes
+        soundWaveView.amplitudes = amplitudes.toList()
     }
 
     override fun <T>setText(title: T){

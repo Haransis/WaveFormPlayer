@@ -29,7 +29,7 @@ class PlayActivity : AppCompatActivity() {
         }
         val uri = Uri.parse("android.resource://$packageName/raw/france")
         try {
-            playerController.addAudioFileUri(applicationContext, uri,amplitudesDB)
+            playerController.addAudioFileUri(applicationContext, uri, amplitudes)
             //view.addAudioUrl(url,amplitudes)
         } catch (e: IOException) {
             e.printStackTrace()

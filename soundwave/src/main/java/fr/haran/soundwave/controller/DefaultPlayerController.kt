@@ -43,6 +43,10 @@ class DefaultPlayerController(var controllingView: ControllingView):
         }
     }
 
+    fun attachPlayerController(){
+        controllingView.attachPlayerController(this)
+    }
+
     override fun isPlaying(): Boolean{
         return mediaPlayer.isPlaying
     }
@@ -81,11 +85,8 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     override fun toggle() {
-        if(mediaPlayer.isPlaying){
-            pause()
-        } else {
-            play()
-        }
+        if (mediaPlayer.isPlaying) pause()
+        else play()
     }
 
     override fun destroyPlayer() {
@@ -95,7 +96,7 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     private fun resetMediaPlayer() {
-        //if (mediaPlayer.isPlaying) mediaPlayer.stop()
+        if (mediaPlayer.isPlaying) mediaPlayer.stop()
         mediaPlayer.reset()
     }
 

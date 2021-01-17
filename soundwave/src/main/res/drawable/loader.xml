@@ -1,0 +1,182 @@
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt">
+    <aapt:attr name="android:drawable">
+        <vector
+            android:name="vector"
+            android:width="22dp"
+            android:height="15dp"
+            android:viewportWidth="22"
+            android:viewportHeight="15">
+            <path
+                android:name="first_1"
+                android:pathData="M 0 15 L 2 15 L 2 15 L 0 15 Z"
+                android:fillColor="#000000"
+                android:strokeWidth="1"
+                android:trimPathOffset="1"/>
+            <path
+                android:name="first_2"
+                android:pathData="M 0 15 L 2 15 L 2 15 L 0 15 Z"
+                android:fillColor="#000000"/>
+            <path
+                android:name="second_1"
+                android:pathData="M 10 15 L 12 15 L 12 15 L 10 15 Z"
+                android:fillColor="#000000"
+                android:strokeWidth="1"/>
+            <path
+                android:name="second_2"
+                android:pathData="M 10 15 L 12 15 L 12 15 L 10 15 Z"
+                android:fillColor="#000000"/>
+            <path
+                android:name="third_1"
+                android:pathData="M 20 15 L 22 15 L 22 15 L 20 15 Z"
+                android:fillColor="#000000"
+                android:strokeWidth="1"/>
+            <path
+                android:name="third_2"
+                android:pathData="M 20 15 L 22 15 L 22 15 L 20 15 Z"
+                android:fillColor="#000000"/>
+        </vector>
+    </aapt:attr>
+    <target android:name="first_1">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:duration="400"
+                    android:valueFrom="M 0 15 L 2 15 L 2 15 L 0 15 Z"
+                    android:valueTo="M 0 15 L 2 15 L 2 0 L 0 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="700"
+                    android:duration="400"
+                    android:valueFrom="M 0 0 L 2 0 L 2 15 L 0 15 Z"
+                    android:valueTo="M 0 0 L 2 0 L 2 0 L 0 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="first_2">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="900"
+                    android:duration="400"
+                    android:valueFrom="M 0 15 L 2 15 L 2 15 L 0 15 Z"
+                    android:valueTo="M 0 15 L 2 15 L 2 0 L 0 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="1600"
+                    android:duration="400"
+                    android:valueFrom="M 0 0 L 2 0 L 2 15 L 0 15 Z"
+                    android:valueTo="M 0 0 L 2 0 L 2 0 L 0 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="second_1">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="200"
+                    android:duration="400"
+                    android:valueFrom="M 10 15 L 12 15 L 12 15 L 10 15 Z"
+                    android:valueTo="M 10 0 L 12 0 L 12 15 L 10 15 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="900"
+                    android:duration="400"
+                    android:valueFrom="M 10 0 L 12 0 L 12 15 L 10 15 Z"
+                    android:valueTo="M 10 0 L 12 0 L 12 0 L 10 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="third_1">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="300"
+                    android:duration="400"
+                    android:valueFrom="M 20 15 L 22 15 L 22 15 L 20 15 Z"
+                    android:valueTo="M 20 0 L 22 0 L 22 15 L 20 15 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="1000"
+                    android:duration="400"
+                    android:valueFrom="M 20 0 L 22 0 L 22 15 L 20 15 Z"
+                    android:valueTo="M 20 0 L 22 0 L 22 0 L 20 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="second_2">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="1100"
+                    android:duration="400"
+                    android:valueFrom="M 10 15 L 12 15 L 12 15 L 10 15 Z"
+                    android:valueTo="M 10 15 L 12 15 L 12 0 L 10 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="1800"
+                    android:duration="400"
+                    android:valueFrom="M 10 0 L 12 0 L 12 15 L 10 15 Z"
+                    android:valueTo="M 10 0 L 12 0 L 12 0 L 10 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+            </set>
+        </aapt:attr>
+    </target>
+    <target android:name="third_2">
+        <aapt:attr name="android:animation">
+            <set>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="1200"
+                    android:duration="400"
+                    android:valueFrom="M 20 15 L 22 15 L 22 15 L 20 15 Z"
+                    android:valueTo="M 20 0 L 22 0 L 22 15 L 20 15 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="1900"
+                    android:duration="400"
+                    android:valueFrom="M 20 0 L 22 0 L 22 15 L 20 15 Z"
+                    android:valueTo="M 20 0 L 22 0 L 22 0 L 20 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+
+                <!-- Dummy transformation to delay animation's end -->
+                <objectAnimator
+                    android:propertyName="pathData"
+                    android:startOffset="2300"
+                    android:duration="500"
+                    android:valueFrom="M 20 0 L 22 0 L 22 0 L 20 0 Z"
+                    android:valueTo="M 20 0 L 22 0 L 22 0 L 20 0 Z"
+                    android:valueType="pathType"
+                    android:interpolator="@android:anim/linear_interpolator"/>
+            </set>
+        </aapt:attr>
+    </target>
+</animated-vector>

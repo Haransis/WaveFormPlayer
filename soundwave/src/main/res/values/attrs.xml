@@ -20,5 +20,6 @@
         <attr name="rec_playedColor" format="color"/>
         <attr name="rec_duration" format="integer"/>
         <attr name="rec_interval" format="integer"/>
+        <attr name="rec_loader" format="reference"/>
     </declare-styleable>
 </resources>

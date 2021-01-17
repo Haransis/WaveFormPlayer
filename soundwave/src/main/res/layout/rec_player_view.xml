@@ -34,7 +34,7 @@
         android:id="@+id/record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="15dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="@drawable/fab_border"
@@ -46,9 +46,42 @@
         custom:layout_constraintTop_toBottomOf="@id/recview"
         custom:layout_constraintBottom_toBottomOf="parent"
         custom:layout_constraintStart_toStartOf="parent"
-        custom:layout_constraintEnd_toEndOf="parent"/>
+        custom:layout_constraintEnd_toEndOf="parent" />
 
-    <ProgressBar
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="@drawable/border_rect"
+        android:src="@drawable/stop"
+        android:layout_marginBottom="10dp"
+        custom:borderWidth="1dp"
+        custom:shapeAppearance="@style/FabSquare"
+        custom:fabCustomSize="60dp"
+        custom:maxImageSize="40dp"
+        custom:backgroundTint="@android:color/white"
+        custom:layout_constraintTop_toBottomOf="@id/recview"
+        custom:layout_constraintBottom_toBottomOf="parent"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/stop_text"
+        android:text="@string/stop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:elevation="17dp"
+        custom:layout_constraintTop_toTopOf="@id/stop"
+        custom:layout_constraintBottom_toBottomOf="@id/stop"
+        custom:layout_constraintEnd_toEndOf="@id/stop"
+        custom:layout_constraintStart_toStartOf="@id/stop"
+        android:visibility="gone"/>
+
+    <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/loader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -76,12 +109,14 @@
         android:foreground="@drawable/fab_border"
         android:tint="@color/colorPrimaryDark"
         custom:backgroundTint="@android:color/white"
-        custom:layout_constraintHorizontal_bias="0.3"
-        custom:layout_constraintVertical_bias="0.4"
+        custom:fabCustomSize="47dp"
+        custom:layout_constraintHorizontal_bias="0.2"
+        custom:layout_constraintVertical_bias="0.7"
         custom:layout_constraintStart_toEndOf="@id/record"
         custom:layout_constraintTop_toBottomOf="@id/recview"
         custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintBottom_toBottomOf="parent" />
+        custom:layout_constraintBottom_toBottomOf="parent"
+        tools:ignore="RtlSymmetry" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/record_again"
@@ -93,8 +128,9 @@
         android:foreground="@drawable/fab_border"
         android:tint="@color/colorPrimaryDark"
         custom:backgroundTint="@android:color/white"
-        custom:layout_constraintVertical_bias="0.4"
-        custom:layout_constraintHorizontal_bias="0.7"
+        custom:fabCustomSize="47dp"
+        custom:layout_constraintVertical_bias="0.7"
+        custom:layout_constraintHorizontal_bias="0.8"
         custom:layout_constraintTop_toBottomOf="@id/recview"
         custom:layout_constraintStart_toStartOf="parent"
         custom:layout_constraintEnd_toStartOf="@id/record"

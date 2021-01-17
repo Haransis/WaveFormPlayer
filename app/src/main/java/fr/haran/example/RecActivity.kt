@@ -36,6 +36,8 @@ class RecActivity : AppCompatActivity(), DefaultRecorderController.InformationRe
         recorderController?.prepareRecorder()
     }
 
+    //TODO have the amplitudes used in player take the same format as the recorder
+
     override fun onDestroy() {
         super.onDestroy()
         recorderController?.let {

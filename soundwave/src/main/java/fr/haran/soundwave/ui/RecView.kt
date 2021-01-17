@@ -1,6 +1,5 @@
 package fr.haran.soundwave.ui
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -14,7 +13,7 @@ import kotlin.properties.Delegates
 
 
 private const val TAG = "RecView"
-private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
+const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
 private const val STROKE_WIDTH = 3F
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
@@ -59,6 +58,7 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
             }
         }
         initializePaint(recordPaint, recordColor)
+        playPaint.strokeWidth = STROKE_WIDTH + 0.3F //TODO choose value
         initializePaint(playPaint, playColor)
     }
 
@@ -122,6 +122,14 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
     fun addAmplitude(y: Int){
         waveForm.lineTo(iteration*barWidth, origin+y*barHeight)
         iteration++
+        invalidate()
+    }
+
+    fun drawAmplitudes(amplitudes: Array<Int>){
+        waveForm.reset()
+        waveForm.moveTo(0F, origin.toFloat())
+        for (index in amplitudes.indices)
+            waveForm.lineTo(index * barWidth, origin + amplitudes[index] * barHeight)
         invalidate()
     }
 

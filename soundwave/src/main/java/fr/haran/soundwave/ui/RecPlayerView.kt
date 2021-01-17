@@ -6,20 +6,28 @@ import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
+import android.graphics.drawable.Drawable
 import android.icu.text.SimpleDateFormat
 import android.os.CountDownTimer
 import android.util.AttributeSet
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
+import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Group
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
+import androidx.vectordrawable.graphics.drawable.Animatable2Compat
+import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.shape.CornerFamily
+import com.google.android.material.shape.ShapeAppearanceModel
 import fr.haran.soundwave.R
 import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.controller.RecorderController
@@ -40,10 +48,12 @@ ControllingView, View.OnTouchListener{
     private lateinit var timerTv: TextView
     private lateinit var recView: RecView
     private lateinit var recordFab: FloatingActionButton
+    private lateinit var stopFab: FloatingActionButton
+    private lateinit var stopText: TextView
     private lateinit var playFab: FloatingActionButton
     private lateinit var recordAgainFab: FloatingActionButton
     private lateinit var controlButtons: Group
-    private lateinit var loader: ProgressBar
+    private lateinit var loader: ImageView
     private lateinit var recorder: RecorderController
     private lateinit var player: PlayerController
     private var alreadyRecorded = false
@@ -92,22 +102,31 @@ ControllingView, View.OnTouchListener{
                 }
             }
         }
+        stopFab = view.findViewById<FloatingActionButton>(R.id.stop).apply{
+            imageTintList = ColorStateList.valueOf(recordColor)
+            setOnClickListener {
+                recorder.stopRecording(false)
+            }
+        }
+        stopText = view.findViewById(R.id.stop_text)
         controlButtons = view.findViewById(R.id.control_buttons)
         recordAgainFab = view.findViewById<FloatingActionButton>(R.id.record_again).apply {
             imageTintList = ColorStateList.valueOf(recordColor)
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
-                recorder.toggle()
                 alreadyRecorded = false
-                if (::player.isInitialized && player.isPlaying())
-                    player.destroyPlayer()
+                if (::player.isInitialized) player.destroyPlayer()
+                recorder.toggle()
             }
         }
         playFab = view.findViewById<FloatingActionButton>(R.id.play).apply {
             imageTintList = ColorStateList.valueOf(recordColor)
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
-                player.toggle()
+                if (::player.isInitialized){
+                    player.toggle()
+                    toggleRecordAgain(player.isPlaying())
+                }
             }
         }
         timerTv = view.findViewById<TextView>(R.id.timer).apply {
@@ -117,6 +136,12 @@ ControllingView, View.OnTouchListener{
         loader = view.findViewById(R.id.loader)
         setRecViewColor()
         setRecViewSamples()
+    }
+
+    private fun toggleRecordAgain(deactivate: Boolean) {
+        recordAgainFab.imageTintList = ColorStateList.valueOf(if (deactivate) playColor else recordColor)
+        recordAgainFab.foregroundTintList = ColorStateList.valueOf(if (deactivate) playColor else recordColor)
+        recordAgainFab.isClickable = !deactivate
     }
 
     private fun setRecViewColor() {
@@ -156,6 +181,10 @@ ControllingView, View.OnTouchListener{
     override fun setAmplitudes(amplitudes: Array<Double>) {
     }
 
+    fun setAmplitudes(amplitudes: Array<Int>) {
+        recView.drawAmplitudes(amplitudes)
+    }
+
     override fun onPlay() {
         playFab.setImageResource(R.drawable.ic_pause)
         recView.isPlaying = true
@@ -178,12 +207,22 @@ ControllingView, View.OnTouchListener{
 
     fun addLoader(){
         recordFab.visibility = View.INVISIBLE
+        controlButtons.visibility = View.GONE
         loader.visibility = View.VISIBLE
+        val animated = AnimatedVectorDrawableCompat.create(context, R.drawable.loader)
+        animated?.registerAnimationCallback(object : Animatable2Compat.AnimationCallback() {
+            override fun onAnimationEnd(drawable: Drawable?) {
+                loader.post { animated.start() }
+            }
+        })
     }
 
     fun onRecordComplete() {
-        countDown.cancel()
+        if (::countDown.isInitialized)
+            countDown.cancel()
         recordFab.setImageResource(R.drawable.ic_check)
+        stopFab.visibility = View.GONE
+        stopText.visibility = View.GONE
         recordFab.visibility = View.VISIBLE
         controlButtons.visibility = View.VISIBLE
         loader.visibility = View.GONE
@@ -191,8 +230,10 @@ ControllingView, View.OnTouchListener{
     }
 
     fun onStart() {
-        recordFab.setImageResource(R.drawable.ic_stop)
+        recordFab.visibility = View.INVISIBLE
         controlButtons.visibility = View.GONE
+        stopFab.visibility = View.VISIBLE
+        stopText.visibility = View.VISIBLE
     }
 
     fun startCountDown(){

@@ -5,7 +5,9 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Paint.ANTI_ALIAS_FLAG
 import android.graphics.Path
+import android.graphics.PathMeasure
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
@@ -13,6 +15,7 @@ import fr.haran.soundwave.R
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
+private const val TAG = "SoundWaveView"
 open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var playedPaint: Paint
@@ -22,7 +25,10 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
     private var barWidth by Delegates.notNull<Float>()
-    var amplitudes = arrayOf(0.0)
+    private var barHeight by Delegates.notNull<Float>()
+    private val aCoordinates = floatArrayOf(0f, 0f)
+    private val measure = PathMeasure()
+    var amplitudes = listOf(0.0)
         set(value){
             field = value
             invalidate()
@@ -53,19 +59,36 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         playedPaint = Paint()
     }
 
-    private fun Path.buildPath(array: Array<Double>){
-        this.rewind()
-        this.moveTo(0F, origin.toFloat())
+    private fun Path.buildPlayedPath(array: List<Double>){
+        this.reset()
+        this.moveTo(0f, origin.toFloat())
         if (!isDb) {
             for (i in array.indices) {
-                this.lineTo(i * barWidth, ((1 + array[i]) * origin).toFloat())
+                this.lineTo(i * barWidth, (origin + array[i] * barHeight).toFloat())
             }
         } else {
             for (i in array.indices) {
-                this.lineTo(i*barWidth, ((-array[i])*origin).toFloat())
+                this.lineTo(i*barWidth, (origin - array[i] * barHeight).toFloat())
             }
             for (i in amplitudes.indices.reversed()){
-                this.lineTo(i*barWidth, ((2+array[i])*origin).toFloat())
+                this.lineTo(i*barWidth, (origin*2 + array[i] * barHeight).toFloat())
+            }
+        }
+    }
+
+    private fun Path.buildNonPlayedPath(array: List<Double>){
+        this.reset()
+        this.moveTo(availableWidth.toFloat(), origin.toFloat())
+        if (!isDb) {
+            for (i in array.indices) {
+                this.lineTo(availableWidth - i * barWidth, (origin + array[array.size-1-i] * barHeight).toFloat())
+            }
+        } else {
+            for (i in array.indices.reversed()) {
+                this.lineTo(availableWidth - i * barWidth, (origin - array[i] * barHeight).toFloat())
+            }
+            for (i in amplitudes.indices){
+                this.lineTo(availableWidth - i * barWidth, (origin * 2 + array[i] * barHeight).toFloat())
             }
         }
     }
@@ -93,24 +116,18 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        playedPaint.apply {
-            color = playedColor
-            flags = ANTI_ALIAS_FLAG
-            strokeWidth = 3.1F
-            style = if (!isDb)
-                Paint.Style.STROKE
-            else
-                Paint.Style.FILL_AND_STROKE
-        }
-        nonPlayedPaint.apply {
-            color = nonPlayedColor
-            flags = ANTI_ALIAS_FLAG
-            strokeWidth = 3F
-            style = if (!isDb)
-                Paint.Style.STROKE
-            else
-                Paint.Style.FILL_AND_STROKE
-        }
+        playedPaint.configurePaint(playedColor)
+        nonPlayedPaint.configurePaint(nonPlayedColor)
+    }
+
+    private fun Paint.configurePaint(colorInt: Int){
+        color = colorInt
+        flags = ANTI_ALIAS_FLAG
+        strokeWidth = 3F
+        style = if (!isDb)
+            Paint.Style.STROKE
+        else
+            Paint.Style.FILL_AND_STROKE
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -121,7 +138,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         availableHeight = (h.toFloat() - ypad).roundToInt()
         origin = availableHeight/2
         barWidth = availableWidth.toFloat() / amplitudes.size
-        waveForm.buildPath(amplitudes)
+        barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
     }
 
     fun updateProgression(percent: Float) {
@@ -132,9 +149,32 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas?.apply {
-            drawPath(waveForm, nonPlayedPaint)
-            clipRect((availableWidth*progression).toInt(),0,availableWidth,availableHeight)
-            drawPath(waveForm, playedPaint)
+            when (val index = (amplitudes.size*progression).roundToInt()) {
+                0, 1 -> {
+                    waveForm.buildNonPlayedPath(amplitudes)
+                    drawPath(waveForm, nonPlayedPaint)
+                }
+                in 2..(amplitudes.size-6) -> {
+                    val firstPart = amplitudes.subList(0, index+5)
+                    val secondPart = amplitudes.subList(index, amplitudes.size)
+                    waveForm.buildPlayedPath(firstPart)
+                    drawPath(waveForm, playedPaint)
+                    waveForm.buildNonPlayedPath(secondPart)
+                    drawPath(waveForm, nonPlayedPaint)
+                }
+                in (amplitudes.size-5) until amplitudes.size -> {
+                    val firstPart = amplitudes.subList(0, index)
+                    val secondPart = amplitudes.subList(index-5, amplitudes.size)
+                    waveForm.buildNonPlayedPath(secondPart)
+                    drawPath(waveForm, nonPlayedPaint)
+                    waveForm.buildPlayedPath(firstPart)
+                    drawPath(waveForm, playedPaint)
+                }
+                else -> {
+                    waveForm.buildPlayedPath(amplitudes)
+                    drawPath(waveForm, playedPaint)
+                }
+            }
         }
     }
 }

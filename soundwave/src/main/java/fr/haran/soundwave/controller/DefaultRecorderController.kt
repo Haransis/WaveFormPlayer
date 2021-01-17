@@ -39,6 +39,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var playerController: DefaultPlayerController = DefaultPlayerController(recPlayerView).apply {
         setPlayerListener()
     }
+
     private var runnable = object: Runnable {
         override fun run() {
             val currentTime = SystemClock.uptimeMillis()
@@ -115,7 +116,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             RECORDER_SAMPLERATE, RECORDER_CHANNELS,
             RECORDER_AUDIO_ENCODING, bufferSize
         )
-        setAudioEffects()
+        // This call was too long for just a recording
+        //setAudioEffects()
         recorder!!.startRecording()
         isRecording = true
         recordingThread.start()
@@ -198,19 +200,18 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         } catch (e: IOException) {
             e.printStackTrace()
         }
+        handler.post { recPlayerView.onRecordComplete() }
         rawToWave(File(pcmPath), File(wavPath))
         playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$wavPath"))
-        handler.post { recPlayerView.onRecordComplete() }
     }
 
     override fun stopRecording(delete: Boolean) {
+        Log.d(TAG, "stopRecording: $amplitudes")
         if (delete)
             deleteExpiredRecordings()
 
         if (isRecording)
             recorderListener.onComplete(this)
-
-        //recordingThread.interrupt()
 
         recorder?.let {
             isRecording = false
@@ -292,6 +293,13 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             e.printStackTrace()
         }
         return bytes
+    }
+    
+    fun restoreStateOnNewRecView(){
+        playerController.controllingView = recPlayerView
+        playerController.attachPlayerController()
+        recPlayerView.setAmplitudes(amplitudes.toTypedArray())
+        recPlayerView.onRecordComplete()
     }
 
     @Throws(IOException::class)

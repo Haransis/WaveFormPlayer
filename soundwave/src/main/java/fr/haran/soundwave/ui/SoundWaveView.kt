@@ -25,6 +25,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
     private var availableHeight by Delegates.notNull<Int>()
     private var origin by Delegates.notNull<Int>()
     private var barWidth by Delegates.notNull<Float>()
+    private var barHeight by Delegates.notNull<Float>()
     private val aCoordinates = floatArrayOf(0f, 0f)
     private val measure = PathMeasure()
     var amplitudes = listOf(0.0)
@@ -63,14 +64,14 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         this.moveTo(0f, origin.toFloat())
         if (!isDb) {
             for (i in array.indices) {
-                this.lineTo(i * barWidth, ((1 + array[i]) * origin).toFloat())
+                this.lineTo(i * barWidth, (origin + array[i] * barHeight).toFloat())
             }
         } else {
             for (i in array.indices) {
-                this.lineTo(i*barWidth, ((-array[i])*origin).toFloat())
+                this.lineTo(i*barWidth, (origin - array[i] * barHeight).toFloat())
             }
             for (i in amplitudes.indices.reversed()){
-                this.lineTo(i*barWidth, ((2+array[i])*origin).toFloat())
+                this.lineTo(i*barWidth, (origin*2 + array[i] * barHeight).toFloat())
             }
         }
     }
@@ -80,14 +81,14 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         this.moveTo(availableWidth.toFloat(), origin.toFloat())
         if (!isDb) {
             for (i in array.indices) {
-                this.lineTo(availableWidth - i * barWidth, ((1 + array[array.size-1-i]) * origin).toFloat())
+                this.lineTo(availableWidth - i * barWidth, (origin + array[array.size-1-i] * barHeight).toFloat())
             }
         } else {
             for (i in array.indices.reversed()) {
-                this.lineTo(availableWidth - i * barWidth, ((-array[i])*origin).toFloat())
+                this.lineTo(availableWidth - i * barWidth, (origin - array[i] * barHeight).toFloat())
             }
             for (i in amplitudes.indices){
-                this.lineTo(availableWidth - i * barWidth, ((2+array[i])*origin).toFloat())
+                this.lineTo(availableWidth - i * barWidth, (origin * 2 + array[i] * barHeight).toFloat())
             }
         }
     }
@@ -137,6 +138,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         availableHeight = (h.toFloat() - ypad).roundToInt()
         origin = availableHeight/2
         barWidth = availableWidth.toFloat() / amplitudes.size
+        barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
     }
 
     fun updateProgression(percent: Float) {

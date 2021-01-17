@@ -206,6 +206,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun stopRecording(delete: Boolean) {
+        Log.d(TAG, "stopRecording: $amplitudes")
         if (delete)
             deleteExpiredRecordings()
 

@@ -13,7 +13,7 @@ import kotlin.properties.Delegates
 
 
 private const val TAG = "RecView"
-private const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
+const val MAX_AMPLITUDE = -Short.MIN_VALUE*2
 private const val STROKE_WIDTH = 3F
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 

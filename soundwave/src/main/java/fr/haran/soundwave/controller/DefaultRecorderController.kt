@@ -1,5 +1,6 @@
 package fr.haran.soundwave.controller
 
+import android.annotation.SuppressLint
 import android.icu.text.SimpleDateFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
@@ -8,6 +9,7 @@ import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
 import android.os.Process.*
 import android.os.SystemClock
 import android.util.Log
@@ -32,7 +34,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var recordingThread = Thread { writeAudioDataToFile() }
     private var bufferSize by Delegates.notNull<Int>()
     val amplitudes = mutableListOf(0)
-    private val handler = Handler()
+    private val handler = Handler(Looper.getMainLooper())
     private lateinit var pcmPath: String
     lateinit var wavPath: String
     private lateinit var recorderListener: RecorderListener
@@ -111,11 +113,15 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         val dateFormat = SimpleDateFormat("ddMMyyyy-ssmmhh", Locale.getDefault())
         pcmPath = "$defaultPath/${dateFormat.format(date)}.pcm"
         wavPath = "$defaultPath/${dateFormat.format(date)}.wav"
-        recorder = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            RECORDER_SAMPLERATE, RECORDER_CHANNELS,
-            RECORDER_AUDIO_ENCODING, bufferSize
-        )
+        try {
+            recorder = AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                RECORDER_SAMPLERATE, RECORDER_CHANNELS,
+                RECORDER_AUDIO_ENCODING, bufferSize
+            )
+        } catch (ex: SecurityException) {
+            throw ex
+        }
         // This call was too long for just a recording
         //setAudioEffects()
         recorder!!.startRecording()
@@ -183,7 +189,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
                     (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8)).toShort()
                 }
                 val iData = sData.map { it.toInt() }
-                val newAmplitude = iData.maxBy { kotlin.math.abs(it) } ?: 0
+                val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
                 delta = amplitudes.last() - newAmplitude
                 amplitudes += newAmplitude
                 start = now

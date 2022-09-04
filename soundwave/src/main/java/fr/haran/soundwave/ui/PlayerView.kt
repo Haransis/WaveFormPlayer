@@ -118,8 +118,8 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         }
     }
 
-    override fun setAmplitudes(amplitudes: Array<Double>){
-        soundWaveView.amplitudes = amplitudes.toList()
+    override fun setAmplitudes(amplitudes: List<Float>){
+        soundWaveView.amplitudes = amplitudes
     }
 
     override fun <T>setText(title: T){

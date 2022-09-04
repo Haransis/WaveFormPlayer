@@ -178,7 +178,7 @@ ControllingView, View.OnTouchListener{
     override fun <T> setText(title: T) {
     }
 
-    override fun setAmplitudes(amplitudes: Array<Double>) {
+    override fun setAmplitudes(amplitudes: List<Float>) {
     }
 
     fun setAmplitudes(amplitudes: Array<Int>) {

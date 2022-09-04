@@ -36,7 +36,10 @@ class DefaultPlayerController(var controllingView: ControllingView):
     override fun preparePlayer(){
         controllingView.attachPlayerController(this)
         mediaPlayer.prepareAsync()
-        mediaPlayer.setOnPreparedListener{ isPrepared = true }
+        mediaPlayer.setOnPreparedListener{
+            isPrepared = true
+            controllingView.updatePlayerPercent(mediaPlayer.duration,0)
+        }
         mediaPlayer.setOnCompletionListener {
             playerListener.onComplete(this)
             handler.removeCallbacks(runnable)
@@ -108,7 +111,7 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     @Throws(IOException::class)
-    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: Array<Double>){
+    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: List<Float>){
         resetMediaPlayer()
         mediaPlayer.setDataSource(context, uri)
         preparePlayer()
@@ -116,7 +119,7 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     @Throws(IOException::class)
-    fun addAudioUrl(url: String, amplitudes: Array<Double>){
+    fun addAudioUrl(url: String, amplitudes: List<Float>){
         resetMediaPlayer()
         mediaPlayer.setDataSource(url)
         preparePlayer()

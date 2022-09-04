@@ -12,6 +12,7 @@ import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import fr.haran.soundwave.R
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
@@ -23,14 +24,16 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
     private var progression: Float = 0F
     private var availableWidth by Delegates.notNull<Int>()
     private var availableHeight by Delegates.notNull<Int>()
-    private var origin by Delegates.notNull<Int>()
+    private var origin by Delegates.notNull<Float>()
     private var barWidth by Delegates.notNull<Float>()
     private var barHeight by Delegates.notNull<Float>()
     private val aCoordinates = floatArrayOf(0f, 0f)
     private val measure = PathMeasure()
-    var amplitudes = listOf(0.0)
+    var maxAmplitude = 0f
+    var amplitudes = listOf(0f)
         set(value){
             field = value
+            maxAmplitude = field.maxOrNull() ?: 1f
             invalidate()
         }
     private val waveForm: Path = Path()
@@ -59,36 +62,32 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         playedPaint = Paint()
     }
 
-    private fun Path.buildPlayedPath(array: List<Double>){
+    private fun Path.buildPlayedPath(array: List<Float>){
         this.reset()
-        this.moveTo(0f, origin.toFloat())
+        this.moveTo(0f, origin)
         if (!isDb) {
             for (i in array.indices) {
-                this.lineTo(i * barWidth, (origin + array[i] * barHeight).toFloat())
+                this.lineTo(i * barWidth, (origin + array[i] * barHeight))
             }
         } else {
             for (i in array.indices) {
-                this.lineTo(i*barWidth, (origin - array[i] * barHeight).toFloat())
-            }
-            for (i in amplitudes.indices.reversed()){
-                this.lineTo(i*barWidth, (origin*2 + array[i] * barHeight).toFloat())
+                this.lineTo(i*barWidth, (array[i] * barHeight))
+                this.lineTo(i*barWidth, (2 * origin - array[i] * barHeight))
             }
         }
     }
 
-    private fun Path.buildNonPlayedPath(array: List<Double>){
+    private fun Path.buildNonPlayedPath(array: List<Float>){
         this.reset()
-        this.moveTo(availableWidth.toFloat(), origin.toFloat())
+        this.moveTo(availableWidth.toFloat(), origin)
         if (!isDb) {
             for (i in array.indices) {
-                this.lineTo(availableWidth - i * barWidth, (origin + array[array.size-1-i] * barHeight).toFloat())
+                this.lineTo(availableWidth - i * barWidth, (origin + array[array.size-1-i] * barHeight))
             }
         } else {
-            for (i in array.indices.reversed()) {
-                this.lineTo(availableWidth - i * barWidth, (origin - array[i] * barHeight).toFloat())
-            }
-            for (i in amplitudes.indices){
-                this.lineTo(availableWidth - i * barWidth, (origin * 2 + array[i] * barHeight).toFloat())
+            for (i in array.indices) {
+                this.lineTo(availableWidth - i * barWidth, (array[i]*barHeight))
+                this.lineTo(availableWidth - i * barWidth, (2*origin - array[i] * barHeight))
             }
         }
     }
@@ -124,10 +123,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         color = colorInt
         flags = ANTI_ALIAS_FLAG
         strokeWidth = 3F
-        style = if (!isDb)
-            Paint.Style.STROKE
-        else
-            Paint.Style.FILL_AND_STROKE
+        style = Paint.Style.STROKE
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -136,9 +132,9 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         val ypad = (paddingTop + paddingBottom).toFloat()
         availableWidth = (w.toFloat() - xpad).roundToInt()
         availableHeight = (h.toFloat() - ypad).roundToInt()
-        origin = availableHeight/2
+        origin = availableHeight/2f
         barWidth = availableWidth.toFloat() / amplitudes.size
-        barHeight = availableHeight.toFloat() / MAX_AMPLITUDE
+        barHeight = availableHeight.toFloat() / maxAmplitude / 2f
     }
 
     fun updateProgression(percent: Float) {

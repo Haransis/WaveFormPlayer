@@ -3,13 +3,13 @@
     <declare-styleable name="SoundWaveView">
         <attr name="playedColor" format="color"/>
         <attr name="nonPlayedColor" format="color"/>
-        <attr name="db" format="boolean"/>
+        <attr name="reflection" format="boolean"/>
     </declare-styleable>
     <declare-styleable name="PlayerView">
         <attr name="mainColor" format="color"/>
         <attr name="secondaryColor" format="color"/>
         <attr name="title" format="string"/>
-        <attr name="waveDb" format="boolean"/>
+        <attr name="play_reflection" format="boolean"/>
     </declare-styleable>
     <declare-styleable name="RecView">
         <attr name="recview_color" format="color"/>

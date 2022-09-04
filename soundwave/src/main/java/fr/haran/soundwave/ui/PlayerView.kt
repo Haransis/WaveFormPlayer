@@ -47,7 +47,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
                         R.color.colorPrimaryDark
                     ))
                 text = getString(R.styleable.PlayerView_title)
-                isDb = getBoolean(R.styleable.PlayerView_waveDb, false)
+                shouldReflect = getBoolean(R.styleable.PlayerView_play_reflection, false)
             } finally {
                 recycle()
             }
@@ -92,7 +92,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         ).apply{
             playedColor = mainColor
             nonPlayedColor = secondaryColor
-            isDb = this@PlayerView.isDb
+            shouldReflect = this@PlayerView.shouldReflect
             setOnTouchListener(this@PlayerView)
         }
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
@@ -146,7 +146,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             invalidate()
         }
 
-    var isDb: Boolean
+    var shouldReflect: Boolean
         set(value){
             field = value
             invalidate()

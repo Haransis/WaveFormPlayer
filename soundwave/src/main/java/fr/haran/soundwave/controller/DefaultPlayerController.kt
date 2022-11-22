@@ -4,6 +4,8 @@ import android.content.Context
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import fr.haran.soundwave.ui.ControllingView
 import java.io.IOException
 
@@ -12,38 +14,42 @@ private const val INTERVAL: Long = 90
 class DefaultPlayerController(var controllingView: ControllingView):
     PlayerController {
 
-    private val mediaPlayer = MediaPlayer()
-    private val handler = Handler()
+    private var mediaPlayer: MediaPlayer? = null
+    private val handler = Handler(Looper.getMainLooper())
     private var isPrepared = false
     private var runnable: Runnable = object: Runnable {
         override fun run() {
-            controllingView.updatePlayerPercent(
-                mediaPlayer.duration,
-                mediaPlayer.currentPosition
-            )
-            playerListener.onDurationProgress(
-                this@DefaultPlayerController,
-                mediaPlayer.duration,
-                mediaPlayer.currentPosition
-            )
+            mediaPlayer?.let {
+                controllingView.updatePlayerPercent(
+                    it.duration,
+                    it.currentPosition
+                )
+                playerListener.onDurationProgress(
+                    this@DefaultPlayerController,
+                    it.duration,
+                    it.currentPosition
+                )
 
-            if (mediaPlayer.isPlaying)
-                handler.postDelayed(this, INTERVAL)
+                if (it.isPlaying)
+                    handler.postDelayed(this, INTERVAL)
+            }
         }
     }
     private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
+        mediaPlayer?.let { player ->
+            player.prepareAsync()
+            player.setOnPreparedListener{
+                isPrepared = true
+                controllingView.updatePlayerPercent(it.duration,0)
+            }
+            player.setOnCompletionListener {
+                playerListener.onComplete(this)
+                handler.removeCallbacks(runnable)
+            }
+        }
         controllingView.attachPlayerController(this)
-        mediaPlayer.prepareAsync()
-        mediaPlayer.setOnPreparedListener{
-            isPrepared = true
-            controllingView.updatePlayerPercent(mediaPlayer.duration,0)
-        }
-        mediaPlayer.setOnCompletionListener {
-            playerListener.onComplete(this)
-            handler.removeCallbacks(runnable)
-        }
     }
 
     fun attachPlayerController(){
@@ -51,11 +57,11 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     override fun isPlaying(): Boolean{
-        return mediaPlayer.isPlaying
+        return mediaPlayer?.isPlaying ?: false
     }
 
     override fun setPosition(position: Float){
-        mediaPlayer.seekTo((position*mediaPlayer.duration).toInt())
+        mediaPlayer?.let { it.seekTo((position*it.duration).toInt()) }
     }
 
     override fun setPlayerListener(playerListener: PlayerListener): DefaultPlayerController {
@@ -64,15 +70,17 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     override fun play() {
-        if (isPrepared) {
-            mediaPlayer.start()
-            playerListener.onPlay(this)
-            handler.post(runnable)
-        } else {
-            mediaPlayer.prepareAsync()
-            mediaPlayer.setOnPreparedListener{
-                isPrepared = true
-                play()
+        mediaPlayer?.let {
+            if (isPrepared) {
+                it.start()
+                playerListener.onPlay(this)
+                handler.post(runnable)
+            } else {
+                it.prepareAsync()
+                it.setOnPreparedListener{
+                    isPrepared = true
+                    play()
+                }
             }
         }
     }
@@ -82,38 +90,43 @@ class DefaultPlayerController(var controllingView: ControllingView):
     }
 
     override fun pause() {
-        if (mediaPlayer.isPlaying)
-            mediaPlayer.pause()
+        if (mediaPlayer?.isPlaying == true)
+            mediaPlayer?.pause()
         playerListener.onPause(this)
     }
 
     override fun toggle() {
-        if (mediaPlayer.isPlaying) pause()
+        if (mediaPlayer?.isPlaying == true) pause()
         else play()
     }
 
     override fun destroyPlayer() {
         resetMediaPlayer()
-        mediaPlayer.release()
+        mediaPlayer?.release()
+        mediaPlayer = null
         handler.removeCallbacks(runnable)
     }
 
     private fun resetMediaPlayer() {
-        if (mediaPlayer.isPlaying) mediaPlayer.stop()
-        mediaPlayer.reset()
+        if (mediaPlayer != null) {
+            if (mediaPlayer?.isPlaying == true) mediaPlayer?.stop()
+            mediaPlayer?.reset()
+        } else {
+            mediaPlayer = MediaPlayer()
+        }
     }
 
     @Throws(IOException::class)
     fun addAudioFileUri(context: Context, uri: Uri){
         resetMediaPlayer()
-        mediaPlayer.setDataSource(context, uri)
+        mediaPlayer!!.setDataSource(context, uri)
         preparePlayer()
     }
 
     @Throws(IOException::class)
     fun addAudioFileUri(context: Context, uri: Uri, amplitudes: List<Float>){
         resetMediaPlayer()
-        mediaPlayer.setDataSource(context, uri)
+        mediaPlayer!!.setDataSource(context, uri)
         preparePlayer()
         controllingView.setAmplitudes(amplitudes)
     }
@@ -121,7 +134,7 @@ class DefaultPlayerController(var controllingView: ControllingView):
     @Throws(IOException::class)
     fun addAudioUrl(url: String, amplitudes: List<Float>){
         resetMediaPlayer()
-        mediaPlayer.setDataSource(url)
+        mediaPlayer!!.setDataSource(url)
         preparePlayer()
         controllingView.setAmplitudes(amplitudes)
     }

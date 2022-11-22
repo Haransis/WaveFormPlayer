@@ -14,11 +14,14 @@ import android.os.Process.*
 import android.os.SystemClock
 import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
+import kotlinx.coroutines.*
 import java.io.*
+import java.lang.Runnable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
 import java.util.concurrent.ForkJoinPool
+import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
 private const val TAG = "DefaultRecorderController"
@@ -31,7 +34,6 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     private var recordedBefore = false
     private var isRecording = false
     private var recorder: AudioRecord? = null
-    private var recordingThread = Thread { writeAudioDataToFile() }
     private var bufferSize by Delegates.notNull<Int>()
     val amplitudes = mutableListOf(0)
     private val handler = Handler(Looper.getMainLooper())
@@ -105,6 +107,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     }
 
     override fun validate() {
+        playerController.pause()
         recorderListener.onValidate(this)
     }
 
@@ -113,6 +116,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         val dateFormat = SimpleDateFormat("ddMMyyyy-ssmmhh", Locale.getDefault())
         pcmPath = "$defaultPath/${dateFormat.format(date)}.pcm"
         wavPath = "$defaultPath/${dateFormat.format(date)}.wav"
+        Log.d(TAG, "startRecording: $wavPath")
         try {
             recorder = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
@@ -126,7 +130,9 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         //setAudioEffects()
         recorder!!.startRecording()
         isRecording = true
-        recordingThread.start()
+        CoroutineScope(Dispatchers.IO).launch {
+            writeAudioDataToFile()
+        }
         recordedBefore = true
         recorderListener.onStart(this)
     }
@@ -167,48 +173,49 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         }
     }
 
-    private fun writeAudioDataToFile() {
-        setThreadPriority(THREAD_PRIORITY_AUDIO)
-        // Write the output audio in byte
-        var start = SystemClock.elapsedRealtime()
-        var now: Long
-        val bData = ByteArray(bufferSize)
-        var os: FileOutputStream? = null
-        try {
-            os = FileOutputStream(pcmPath)
-        } catch (e: FileNotFoundException) {
-            e.printStackTrace()
-        }
-        handler.post { recPlayerView.startCountDown() }
-        handler.post(runnable)
-        while (isRecording) {
-            recorder!!.read(bData, 0, bufferSize)
-            now = SystemClock.elapsedRealtime()
-            if (now-start > recPlayerView.interval){
-                val sData = ShortArray(bData.size / 2) {
-                    (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8)).toShort()
+    private suspend fun writeAudioDataToFile() {
+        withContext(Dispatchers.IO) {
+            // Write the output audio in byte
+            var start = SystemClock.elapsedRealtime()
+            var now: Long
+            val bData = ByteArray(bufferSize)
+            var os: FileOutputStream? = null
+            try {
+                os = FileOutputStream(pcmPath)
+            } catch (e: FileNotFoundException) {
+                e.printStackTrace()
+            }
+            handler.post { recPlayerView.startCountDown() }
+            handler.post(runnable)
+            while (isRecording) {
+                recorder!!.read(bData, 0, bufferSize)
+                now = SystemClock.elapsedRealtime()
+                if (now-start > recPlayerView.interval){
+                    val sData = ShortArray(bData.size / 2) {
+                        (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8)).toShort()
+                    }
+                    val iData = sData.map { it.toInt() }
+                    val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
+                    delta = amplitudes.last() - newAmplitude
+                    amplitudes += newAmplitude
+                    start = now
                 }
-                val iData = sData.map { it.toInt() }
-                val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
-                delta = amplitudes.last() - newAmplitude
-                amplitudes += newAmplitude
-                start = now
+                try {
+                    // writes the data to file from buffer
+                    os?.write(bData)
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
             }
             try {
-                // writes the data to file from buffer
-                os?.write(bData)
+                os?.close()
             } catch (e: IOException) {
                 e.printStackTrace()
             }
+            handler.post { recPlayerView.onRecordComplete() }
+            rawToWave(File(pcmPath), File(wavPath))
+            playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$wavPath"))
         }
-        try {
-            os?.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-        handler.post { recPlayerView.onRecordComplete() }
-        rawToWave(File(pcmPath), File(wavPath))
-        playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$wavPath"))
     }
 
     override fun stopRecording(delete: Boolean) {

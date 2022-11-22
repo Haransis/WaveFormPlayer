@@ -1,6 +1,7 @@
 package fr.haran.example
 
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.WindowManager
 import android.widget.Toast
@@ -35,8 +36,6 @@ class RecActivity : AppCompatActivity(), DefaultRecorderController.InformationRe
         )
         recorderController?.prepareRecorder()
     }
-
-    //TODO have the amplitudes used in player take the same format as the recorder
 
     override fun onDestroy() {
         super.onDestroy()

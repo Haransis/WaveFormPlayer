@@ -95,8 +95,10 @@ ControllingView, View.OnTouchListener{
             imageTintList = ColorStateList.valueOf(recordColor)
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
-                if (alreadyRecorded)
+                if (alreadyRecorded) {
+                    toggleRecordAgain(false)
                     recorder.validate()
+                }
                 else if (checkPermission(context)){
                     recorder.toggle()
                 }
@@ -199,6 +201,7 @@ ControllingView, View.OnTouchListener{
     override fun onComplete() {
         playFab.setImageResource(R.drawable.ic_play)
         recView.isPlaying = false
+        toggleRecordAgain(false)
     }
 
     fun addAmplitude(y: Int) {

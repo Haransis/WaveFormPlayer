@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    compileSdk 33
 
     defaultConfig {
         applicationId "fr.haran.example"
-        minSdkVersion 29
-        targetSdkVersion 31
+        minSdk 29
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 

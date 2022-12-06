@@ -1,6 +1,5 @@
 package fr.haran.soundwave.controller
 
-import android.annotation.SuppressLint
 import android.icu.text.SimpleDateFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
@@ -10,7 +9,6 @@ import android.media.audiofx.NoiseSuppressor
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.os.Process.*
 import android.os.SystemClock
 import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
@@ -20,15 +18,13 @@ import java.lang.Runnable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.*
-import java.util.concurrent.ForkJoinPool
-import kotlin.coroutines.CoroutineContext
 import kotlin.properties.Delegates
 
 private const val TAG = "DefaultRecorderController"
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_CHANNELS: Int = android.media.AudioFormat.CHANNEL_IN_MONO
 private const val RECORDER_AUDIO_ENCODING: Int = android.media.AudioFormat.ENCODING_PCM_16BIT
-class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
+class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
 
     private var delta = 0
     private var recordedBefore = false
@@ -38,13 +34,13 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
     val amplitudes = mutableListOf(0)
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var pcmPath: String
-    lateinit var wavPath: String
+    private lateinit var wavPath: String
     private lateinit var recorderListener: RecorderListener
     private var playerController: DefaultPlayerController = DefaultPlayerController(recPlayerView).apply {
         setPlayerListener()
     }
 
-    private var runnable = object: Runnable {
+    private var periodicCallback = object: Runnable {
         override fun run() {
             val currentTime = SystemClock.uptimeMillis()
             recPlayerView.addAmplitude(amplitudes.last())
@@ -98,7 +94,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             stopRecording(true)
         else
             stopRecording(false)
-        handler.removeCallbacks(runnable)
+        handler.removeCallbacks(periodicCallback)
     }
 
     override fun setRecorderListener(recorderListener: RecorderListener): RecorderController {
@@ -186,15 +182,14 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
                 e.printStackTrace()
             }
             handler.post { recPlayerView.startCountDown() }
-            handler.post(runnable)
+            handler.post(periodicCallback)
             while (isRecording) {
                 recorder!!.read(bData, 0, bufferSize)
                 now = SystemClock.elapsedRealtime()
                 if (now-start > recPlayerView.interval){
-                    val sData = ShortArray(bData.size / 2) {
-                        (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8)).toShort()
+                    val iData = IntArray(bData.size / 2) {
+                        (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8))
                     }
-                    val iData = sData.map { it.toInt() }
                     val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
                     delta = amplitudes.last() - newAmplitude
                     amplitudes += newAmplitude
@@ -232,7 +227,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
             it.release()
             recorder = null
         }
-        handler.removeCallbacks(runnable)
+        handler.removeCallbacks(periodicCallback)
     }
 
     @Throws(IOException::class)
@@ -334,6 +329,8 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
         output.write(value.toByteArray())
     }
 
+    fun getFileLocation(): String? = if (::wavPath.isInitialized) wavPath else null
+
     interface InformationRetriever{
         fun setPath(path: String)
         fun setAmplitudes(amplitudes: List<Int>)
@@ -348,7 +345,7 @@ class DefaultRecorderController(var recPlayerView: RecPlayerView, var defaultPat
 
             override fun onComplete(recorderController: RecorderController) {
                 recPlayerView.addLoader()
-                retriever?.setPath(wavPath)
+                retriever?.setPath(getFileLocation() ?: "")
                 retriever?.setAmplitudes(amplitudes)
                 complete()
             }

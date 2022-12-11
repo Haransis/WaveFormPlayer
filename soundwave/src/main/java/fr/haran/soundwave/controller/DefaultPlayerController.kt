@@ -5,16 +5,23 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import fr.haran.soundwave.ui.ControllingView
 import java.io.IOException
+import java.lang.IllegalStateException
 
 private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(var controllingView: ControllingView):
+class DefaultPlayerController(var controllingView: ControllingView, cachePath: String? = null):
     PlayerController {
 
     private var mediaPlayer: MediaPlayer? = null
+    var cachePath: String? = cachePath
+    set(value) {
+        field = value
+        if (value != null)
+            (mediaPlayer as? CacheMediaPlayer)?.cacheDir = value
+    }
+
     private val handler = Handler(Looper.getMainLooper())
     private var isPrepared = false
     private var runnable: Runnable = object: Runnable {
@@ -76,10 +83,14 @@ class DefaultPlayerController(var controllingView: ControllingView):
                 playerListener.onPlay(this)
                 handler.post(runnable)
             } else {
-                it.prepareAsync()
-                it.setOnPreparedListener{
-                    isPrepared = true
-                    play()
+                try {
+                    it.prepareAsync()
+                    it.setOnPreparedListener{
+                        isPrepared = true
+                        play()
+                    }
+                } catch (ex: IllegalStateException) {
+                    // mediaplayer is already preparing
                 }
             }
         }
@@ -107,12 +118,14 @@ class DefaultPlayerController(var controllingView: ControllingView):
         handler.removeCallbacks(runnable)
     }
 
-    private fun resetMediaPlayer() {
+    private fun resetMediaPlayer(remote: Boolean = false) {
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying == true) mediaPlayer?.stop()
             mediaPlayer?.reset()
         } else {
-            mediaPlayer = MediaPlayer()
+            if (remote)
+                mediaPlayer = CacheMediaPlayer().apply { cacheDir = cachePath }
+            else mediaPlayer = MediaPlayer()
         }
     }
 
@@ -133,7 +146,7 @@ class DefaultPlayerController(var controllingView: ControllingView):
 
     @Throws(IOException::class)
     fun addAudioUrl(url: String, amplitudes: List<Float>){
-        resetMediaPlayer()
+        resetMediaPlayer(true)
         mediaPlayer!!.setDataSource(url)
         preparePlayer()
         controllingView.setAmplitudes(amplitudes)

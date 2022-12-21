@@ -204,6 +204,10 @@ ControllingView, View.OnTouchListener{
         toggleRecordAgain(false)
     }
 
+    override fun onError() {
+        onComplete()
+    }
+
     fun addAmplitude(y: Int) {
         recView.addAmplitude(y)
     }

@@ -55,6 +55,18 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
                 playerListener.onComplete(this)
                 handler.removeCallbacks(runnable)
             }
+            player.setOnErrorListener {
+                    _, what, extra ->
+                val exception = when {
+                    what == MediaPlayer.MEDIA_ERROR_SERVER_DIED -> Exception("Could not read from cache")
+                    extra == MediaPlayer.MEDIA_ERROR_IO -> IOException("Connection with server died")
+                    extra == MediaPlayer.MEDIA_ERROR_MALFORMED -> RuntimeException("Media is corrupt")
+                    else -> RuntimeException("Timed out")
+                }
+                playerListener.onError(this, exception)
+                mediaPlayer = null
+                return@setOnErrorListener true
+            }
         }
         controllingView.attachPlayerController(this)
     }
@@ -157,7 +169,8 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
         crossinline complete: () -> Unit = {},
-        crossinline progress: (Int, Int) -> Unit = { _, _ -> }
+        crossinline progress: (Int, Int) -> Unit = { _, _ -> },
+        crossinline error: (Exception) -> Unit = { _ -> }
     ){
         setPlayerListener(object: PlayerListener {
             override fun onPrepared(playerController: PlayerController) {
@@ -185,6 +198,11 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
                 currentTimeStamp: Int
             ) {
                 progress(duration,currentTimeStamp)
+            }
+
+            override fun onError(playerController: PlayerController, e: Exception) {
+                controllingView.onError()
+                error(e)
             }
         })
     }

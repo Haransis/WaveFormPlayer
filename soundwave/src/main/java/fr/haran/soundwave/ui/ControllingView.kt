@@ -10,4 +10,5 @@ interface ControllingView {
     fun onPlay()
     fun onPause()
     fun onComplete()
+    fun onError()
 }

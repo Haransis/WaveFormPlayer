@@ -29,6 +29,7 @@ class CacheMediaPlayer(
     private var selector: Selector? = null
     private var serverChannel: ServerSocketChannel? = null
     private var proxyJob: Job? = null
+    private var mOnErrorListener: OnErrorListener? = null
     var port = 0
     private val buffer = ByteBuffer.allocateDirect(bufferSize)
     private val bytes = ByteArray(buffer.capacity())
@@ -74,6 +75,11 @@ class CacheMediaPlayer(
         super.setDataSource("http://127.0.0.1:$port/$path")
     }
 
+    override fun setOnErrorListener(listener: OnErrorListener?) {
+        super.setOnErrorListener(listener)
+        mOnErrorListener = listener
+    }
+
     private suspend fun run() {
         return withContext(Dispatchers.IO) {
             while (isActive) {
@@ -94,8 +100,10 @@ class CacheMediaPlayer(
                     }
                     selected.clear()
                 } catch (e: IOException) {
-                    Log.e(TAG, "Proxy died.")
-                    e.printStackTrace()
+                    mOnErrorListener?.let { CoroutineScope(Dispatchers.Main).launch {
+                        it.onError(this@CacheMediaPlayer, MEDIA_ERROR_UNKNOWN, MEDIA_ERROR_IO)
+                    } }
+                    cancel("proxy died", e)
                 }
             }
             try {
@@ -151,18 +159,25 @@ class CacheMediaPlayer(
                 null
             )
         } else {
-            val conn = request.url!!.openConnection() as HttpURLConnection
-            for (headerKey in request.headers.keys) {
-                conn.setRequestProperty(headerKey, request.headers[headerKey])
+            try {
+                val conn = request.url!!.openConnection() as HttpURLConnection
+                for (headerKey in request.headers.keys) {
+                    conn.setRequestProperty(headerKey, request.headers[headerKey])
+                }
+                conn.connectTimeout = connectTimeout
+                conn.readTimeout = readTimeout
+                conn.connect()
+                val fos = FileOutputStream("$cacheDir/${request.hash}")
+                write(key.channel() as SocketChannel, buildResponseHeadersStream(conn), fos)
+                write(key.channel() as SocketChannel, conn.inputStream, fos)
+                fos.close()
+                conn.disconnect()
+            } catch (e: Exception) {
+                with(File("$cacheDir/${request.hash}")){
+                    if (exists()) delete()
+                }
+                throw e
             }
-            conn.connectTimeout = connectTimeout
-            conn.readTimeout = readTimeout
-            conn.connect()
-            val fos = FileOutputStream("$cacheDir/${request.hash}")
-            write(key.channel() as SocketChannel, buildResponseHeadersStream(conn), fos)
-            write(key.channel() as SocketChannel, conn.inputStream, fos)
-            fos.close()
-            conn.disconnect()
         }
         key.channel().close()
         key.cancel()
@@ -189,6 +204,10 @@ class CacheMediaPlayer(
                 Log.e(TAG, "Could not close the stream.")
             }
         }
+    }
+
+    private fun error() {
+
     }
 
     private inner class Request(request: String) {

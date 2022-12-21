@@ -73,6 +73,11 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         pause.visibility = View.GONE
     }
 
+    override fun onError() {
+        onComplete()
+        play.isClickable = false
+    }
+
     override fun updatePlayerPercent(duration: Int, currentPosition: Int){
         if(!isScrolling)
             soundWaveView.updateProgression(currentPosition / duration.toFloat())
@@ -87,9 +92,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
         val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, this, true)
-        soundWaveView = view.findViewById<SoundWaveView>(
-            R.id.sound_wave_view
-        ).apply{
+        soundWaveView = view.findViewById<SoundWaveView>(R.id.sound_wave_view).apply{
             playedColor = mainColor
             nonPlayedColor = secondaryColor
             shouldReflect = this@PlayerView.shouldReflect
@@ -98,12 +101,15 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
-            setOnClickListener { playerController.toggle() } }
+            setOnClickListener { playerController.toggle() }
+            isClickable = true
+        }
         pause = view.findViewById<ImageButton>(R.id.pause).apply{
             backgroundTintList = ColorStateList.valueOf(secondaryColor)
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
-            setOnClickListener { playerController.toggle() } }
+            setOnClickListener { playerController.toggle() }
+        }
         title = view.findViewById<TextView>(R.id.sound_title).apply {
             text = this@PlayerView.text
         }

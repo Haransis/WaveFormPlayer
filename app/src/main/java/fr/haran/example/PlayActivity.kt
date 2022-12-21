@@ -4,7 +4,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import fr.haran.soundwave.controller.CachePlayerController
 import fr.haran.soundwave.controller.DefaultPlayerController
 import fr.haran.soundwave.ui.PlayerView
 import java.io.IOException
@@ -19,12 +18,14 @@ class PlayActivity : AppCompatActivity() {
         setContentView(R.layout.activity_play)
         val playerView = findViewById<PlayerView>(R.id.player_view)
         playerController = DefaultPlayerController(playerView, application.cacheDir.absolutePath).apply {
-            setPlayerListener(play = {
-                Toast.makeText(
-                    this@PlayActivity,
-                    "Play Clicked !",
-                    Toast.LENGTH_SHORT
-                ).show()})
+            setPlayerListener(
+                play = {
+                Toast.makeText(this@PlayActivity, "Play Clicked !", Toast.LENGTH_SHORT)
+                    .show()
+                }, error = {
+                    Toast.makeText(this@PlayActivity, it.message, Toast.LENGTH_LONG).show()
+                }
+            )
         }
         readAmplitudes()
         val uri = Uri.parse("android.resource://$packageName/raw/france")

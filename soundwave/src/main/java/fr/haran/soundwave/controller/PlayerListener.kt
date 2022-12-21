@@ -6,4 +6,5 @@ interface PlayerListener {
     fun onPlay(playerController: PlayerController)
     fun onPrepared(playerController: PlayerController)
     fun onDurationProgress(playerController: PlayerController, duration: Int, currentTimeStamp: Int)
+    fun onError(playerController: PlayerController, e: Exception)
 }

@@ -134,6 +134,8 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying == true) mediaPlayer?.stop()
             mediaPlayer?.reset()
+            mediaPlayer = null
+            resetMediaPlayer(remote)
         } else {
             if (remote)
                 mediaPlayer = CacheMediaPlayer().apply { cacheDir = cachePath }

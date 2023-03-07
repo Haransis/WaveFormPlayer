@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import fr.haran.soundwave.controller.AacRecorderController
 import java.io.File
 
-private const val TAG = "RecActivity"
 class RecActivity : AppCompatActivity(), AacRecorderController.InformationRetriever {
 
     private var recorderController: AacRecorderController? = null

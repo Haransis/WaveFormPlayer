@@ -3,14 +3,21 @@
 
 package fr.haran.soundwave.utils
 
+import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 object Utils {
-    val dateFormat = SimpleDateFormat("mm:ss", Locale.FRANCE)
-    val date = Date(0)
+    @SuppressLint("ConstantLocale")
+    private val dateFormat = DateTimeFormatter
+        .ofPattern("mm:ss")
     fun millisToString(millis:Long): String{
         return dateFormat.format(
-            date.apply { time = millis })
+            LocalTime.MIDNIGHT.plus(Duration.ofMillis(millis))
+        )
     }
 }

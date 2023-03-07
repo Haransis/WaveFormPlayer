@@ -17,6 +17,9 @@ import java.io.*
 import java.lang.Runnable
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -108,10 +111,13 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     override fun startRecording() {
-        val date = Date()
-        val dateFormat = SimpleDateFormat("ddMMyyyy-ssmmhh", Locale.getDefault())
-        pcmPath = "$defaultPath/${dateFormat.format(date)}.pcm"
-        wavPath = "$defaultPath/${dateFormat.format(date)}.wav"
+        val date = DateTimeFormatter
+            .ofPattern("ddMMyyyy-ssmmhh")
+            .withLocale(Locale.getDefault())
+            .withZone(ZoneId.of("UTC"))
+            .format(Instant.now())
+        pcmPath = "$defaultPath/$date.pcm"
+        wavPath = "$defaultPath/$date.wav"
         Log.d(TAG, "startRecording: $wavPath")
         try {
             recorder = AudioRecord(

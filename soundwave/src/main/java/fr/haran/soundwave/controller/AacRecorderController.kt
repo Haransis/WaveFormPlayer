@@ -1,6 +1,5 @@
 package fr.haran.soundwave.controller
 
-import android.icu.text.SimpleDateFormat
 import android.media.*
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
@@ -13,6 +12,9 @@ import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import kotlinx.coroutines.*
 import java.io.*
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.experimental.or
 import kotlin.properties.Delegates
@@ -26,6 +28,7 @@ private const val RECORDER_AUDIO_ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
 class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
 
     private var delta = 0
+    private var start = 0L
     private var recordedBefore = false
     private var isRecording = false
     private var recorder: AudioRecord? = null
@@ -104,9 +107,12 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     override fun startRecording() {
-        val date = Date()
-        val dateFormat = SimpleDateFormat("ddMMyyyy-ssmmhh", Locale.getDefault())
-        aacPath = "$defaultPath/${dateFormat.format(date)}.aac"
+        val date = DateTimeFormatter
+            .ofPattern("ddMMyyyy-ssmmhh")
+            .withLocale(Locale.getDefault())
+            .withZone(ZoneId.of("UTC"))
+            .format(Instant.now())
+        aacPath = "$defaultPath/$date.aac"
 
         try {
             codec = createMediaCodec(bufferSize)
@@ -114,8 +120,6 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         } catch (ex: SecurityException) {
             throw ex
         }
-        // This call was too long for just a recording
-        //setAudioEffects()
         codec!!.start()
         recorder!!.startRecording()
         isRecording = true
@@ -129,11 +133,8 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     private suspend fun writeAudioDataToFile() {
         withContext(Dispatchers.IO) {
+            start = SystemClock.elapsedRealtime()
             val bufferInfo = MediaCodec.BufferInfo()
-            // Write the output audio in byte
-            var start = SystemClock.elapsedRealtime()
-            var now: Long
-            val bData = ByteArray(bufferSize)
             var os: FileOutputStream? = null
             try {
                 os = FileOutputStream(aacPath)
@@ -150,18 +151,6 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
                     } catch (e: IOException) {
                         e.printStackTrace()
                     }
-                    recorder!!.read(bData, 0, bufferSize)
-                    now = SystemClock.elapsedRealtime()
-                    if (now-start > recPlayerView.interval){
-                        val sData = ShortArray(bData.size / 2) {
-                            (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8)).toShort()
-                        }
-                        val iData = sData.map { it.toInt() }
-                        val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
-                        delta = amplitudes.last() - newAmplitude
-                        amplitudes += newAmplitude
-                        start = now
-                    }
                 }
             }
             try {
@@ -175,7 +164,6 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     override fun stopRecording(delete: Boolean) {
-        Log.d(TAG, "stopRecording: $amplitudes")
         if (delete)
             deleteExpiredRecordings()
 
@@ -217,6 +205,18 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
                 0
             )
         }
+
+        val now = SystemClock.elapsedRealtime()
+        if (now-start > recPlayerView.interval){
+            val sData = ShortArray(audioRecordData.size / 2) {
+                (audioRecordData[it * 2] + (audioRecordData[(it * 2) + 1].toInt() shl 8)).toShort()
+            }
+            val iData = sData.map { it.toInt() }
+            val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
+            delta = amplitudes.last() - newAmplitude
+            amplitudes += newAmplitude
+            start = now
+        }
         return true
     }
 
@@ -247,7 +247,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         }
     }
 
-    private fun createAdtsHeader(length: Int): ByteArray? {
+    private fun createAdtsHeader(length: Int): ByteArray {
         val frameLength = length + 7
         val adtsHeader = ByteArray(7)
         adtsHeader[0] = 0xFF.toByte() // Sync Word
@@ -280,7 +280,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             audioRecord = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
                 RECORDER_SAMPLERATE,
-                RECORDER_CHANNELS,
+                AudioFormat.CHANNEL_IN_MONO,
                 RECORDER_AUDIO_ENCODING,
                 bufferSize * 10
             )

@@ -160,18 +160,19 @@ class CacheMediaPlayer(
             )
         } else {
             try {
-                val conn = request.url!!.openConnection() as HttpURLConnection
-                for (headerKey in request.headers.keys) {
-                    conn.setRequestProperty(headerKey, request.headers[headerKey])
+                (request.url!!.openConnection() as? HttpURLConnection?)?.let {
+                    for (headerKey in request.headers.keys) {
+                        it.setRequestProperty(headerKey, request.headers[headerKey])
+                    }
+                    it.connectTimeout = connectTimeout
+                    it.readTimeout = readTimeout
+                    it.connect()
+                    val fos = FileOutputStream("$cacheDir/${request.hash}")
+                    write(key.channel() as SocketChannel, buildResponseHeadersStream(it), fos)
+                    write(key.channel() as SocketChannel, it.inputStream, fos)
+                    fos.close()
+                    it.disconnect()
                 }
-                conn.connectTimeout = connectTimeout
-                conn.readTimeout = readTimeout
-                conn.connect()
-                val fos = FileOutputStream("$cacheDir/${request.hash}")
-                write(key.channel() as SocketChannel, buildResponseHeadersStream(conn), fos)
-                write(key.channel() as SocketChannel, conn.inputStream, fos)
-                fos.close()
-                conn.disconnect()
             } catch (e: Exception) {
                 with(File("$cacheDir/${request.hash}")){
                     if (exists()) delete()

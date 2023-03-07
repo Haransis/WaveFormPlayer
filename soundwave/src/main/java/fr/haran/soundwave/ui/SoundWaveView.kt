@@ -13,7 +13,6 @@ import fr.haran.soundwave.R
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private const val TAG = "SoundWaveView"
 open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var playedPaint: Paint

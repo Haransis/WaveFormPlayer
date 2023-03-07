@@ -3,6 +3,7 @@ package fr.haran.soundwave.controller
 import android.media.MediaPlayer
 import android.util.Log
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
@@ -19,7 +20,6 @@ import java.util.*
 private const val DEFAULT_BUFFER_SIZE = 1024 * 64
 private const val DEFAULT_CONNECT_TIMEOUT = 3000
 private const val DEFAULT_READ_TIMEOUT = 3000
-private const val TAG = "CacheMediaPlayer"
 class CacheMediaPlayer(
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     private var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT,
@@ -51,7 +51,7 @@ class CacheMediaPlayer(
                 it.register(selector, SelectionKey.OP_ACCEPT)
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Proxy initialization failed.")
+            Timber.e("init: Proxy initialization failed.")
         }
     }
 
@@ -110,7 +110,7 @@ class CacheMediaPlayer(
                 selector!!.close()
                 serverChannel!!.close()
             } catch (e: IOException) {
-                Log.e(TAG, "Proxy cleanup failed.")
+                Timber.e("run: Proxy cleanup failed.")
             }
         }
     }
@@ -197,12 +197,12 @@ class CacheMediaPlayer(
                 }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Write to channel/cache failed.")
+            Timber.e("write: Write to channel/cache failed.")
         } finally {
             try {
                 stream.close()
             } catch (e: IOException) {
-                Log.e(TAG, "Could not close the stream.")
+                Timber.e("write: Could not close the stream.")
             }
         }
     }
@@ -230,7 +230,7 @@ class CacheMediaPlayer(
                 )
                 return hex.toString()
             } catch (e: NoSuchAlgorithmException) {
-                Log.wtf(TAG, "No md5 support. Results unpredictable.")
+                Timber.wtf("md5: No md5 support. Results unpredictable.")
             }
             return ""
         }
@@ -243,7 +243,7 @@ class CacheMediaPlayer(
                     url = try {
                         URL(line.split(' ', limit = 3)[1].substring(1))
                     } catch (e: MalformedURLException) {
-                        Log.e(TAG, "CachedMediaPlayer data source URL is malformed.")
+                        Timber.e("init: CachedMediaPlayer data source URL is malformed.")
                         null
                     }
                     builder.append(line)

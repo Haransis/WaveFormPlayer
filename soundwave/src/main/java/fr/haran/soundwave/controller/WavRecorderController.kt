@@ -7,12 +7,14 @@ import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.net.Uri
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.*
 import java.lang.Runnable
 import java.nio.ByteBuffer
@@ -118,7 +120,7 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             .format(Instant.now())
         pcmPath = "$defaultPath/$date.pcm"
         wavPath = "$defaultPath/$date.wav"
-        Log.d(TAG, "startRecording: $wavPath")
+        Timber.d("startRecording: $wavPath")
         try {
             recorder = AudioRecord(
                 MediaRecorder.AudioSource.MIC,
@@ -129,7 +131,7 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             throw ex
         }
         // This call was too long for just a recording
-        //setAudioEffects()
+        recorder!!.setAudioEffects()
         recorder!!.startRecording()
         isRecording = true
         CoroutineScope(Dispatchers.IO).launch {
@@ -139,40 +141,11 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         recorderListener.onStart(this)
     }
 
-    private fun setAudioEffects() {
-        if (AutomaticGainControl.isAvailable()) {
-            val agc = AutomaticGainControl.create(recorder!!.audioSessionId)
-            Log.d("AudioRecord", "AGC is " + if (agc.enabled) "enabled" else "disabled")
-            agc.enabled = true
-            Log.d(
-                "AudioRecord",
-                "AGC is " + if (agc.enabled) "enabled" else "disabled" + " after trying to enable"
-            )
-        } else {
-            Log.d("AudioRecord", "AGC is unavailable")
-        }
-        if (NoiseSuppressor.isAvailable()) {
-            val ns = NoiseSuppressor.create(recorder!!.audioSessionId)
-            Log.d("AudioRecord", "NS is " + if (ns.enabled) "enabled" else "disabled")
-            ns.enabled = true
-            Log.d(
-                "AudioRecord",
-                "NS is " + if (ns.enabled) "enabled" else "disabled" + " after trying to disable"
-            )
-        } else {
-            Log.d("AudioRecord", "NS is unavailable")
-        }
-        if (AcousticEchoCanceler.isAvailable()) {
-            val aec = AcousticEchoCanceler.create(recorder!!.audioSessionId)
-            Log.d("AudioRecord", "AEC is " + if (aec.enabled) "enabled" else "disabled")
-            aec.enabled = true
-            Log.d(
-                "AudioRecord",
-                "AEC is " + if (aec.enabled) "enabled" else "disabled" + " after trying to disable"
-            )
-        } else {
-            Log.d("AudioRecord", "aec is unavailable")
-        }
+    private fun AudioRecord.setAudioEffects() {
+        if (NoiseSuppressor.isAvailable())
+            NoiseSuppressor.create(audioSessionId)?.let { it.enabled = true }
+        if (AutomaticGainControl.isAvailable())
+            AutomaticGainControl.create(audioSessionId)?.let { it.enabled = true }
     }
 
     private suspend fun writeAudioDataToFile() {
@@ -220,7 +193,7 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     override fun stopRecording(delete: Boolean) {
-        Log.d(TAG, "stopRecording: $amplitudes")
+        Timber.d("stopRecording: $amplitudes")
         if (delete)
             deleteExpiredRecordings()
 

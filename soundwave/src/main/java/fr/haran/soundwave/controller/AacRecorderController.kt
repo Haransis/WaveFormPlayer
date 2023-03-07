@@ -11,6 +11,7 @@ import android.os.SystemClock
 import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.*
 import java.time.Instant
 import java.time.ZoneId
@@ -288,17 +289,13 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             throw ex
         }
         if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
-            Log.d(TAG, "Unable to initialize AudioRecord")
+            Timber.e("createAudioRecord: Unable to initialize AudioRecord")
             throw RuntimeException("Unable to initialize AudioRecord")
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            if (NoiseSuppressor.isAvailable())
-                NoiseSuppressor.create(audioRecord.audioSessionId)?.let { it.enabled = true }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            if (AutomaticGainControl.isAvailable())
-                AutomaticGainControl.create(audioRecord.audioSessionId)?.let { it.enabled = true }
-        }
+        if (NoiseSuppressor.isAvailable())
+            NoiseSuppressor.create(audioRecord.audioSessionId)?.let { it.enabled = true }
+        if (AutomaticGainControl.isAvailable())
+            AutomaticGainControl.create(audioRecord.audioSessionId)?.let { it.enabled = true }
         return audioRecord
     }
 

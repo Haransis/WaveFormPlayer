@@ -35,7 +35,6 @@ import java.util.*
 import kotlin.math.abs
 
 
-private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs),

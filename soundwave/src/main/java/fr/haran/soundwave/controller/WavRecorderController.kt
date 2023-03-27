@@ -1,17 +1,13 @@
 package fr.haran.soundwave.controller
 
-import android.icu.text.SimpleDateFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.media.audiofx.AcousticEchoCanceler
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.net.Uri
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import kotlinx.coroutines.*
 import timber.log.Timber
@@ -56,7 +52,7 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     override fun toggle() {
         if (isRecording)
-            stopRecording(false)
+            stopRecording(false, isComplete = false)
         else {
             if (recordedBefore) {
                 amplitudes.clear()
@@ -96,9 +92,9 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     private fun destroyRecorder() {
         if (isRecording)
-            stopRecording(true)
+            stopRecording(true, isComplete = false)
         else
-            stopRecording(false)
+            stopRecording(false, isComplete = false)
         handler.removeCallbacks(periodicCallback)
     }
 
@@ -192,13 +188,16 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         }
     }
 
-    override fun stopRecording(delete: Boolean) {
+    override fun stopRecording(delete: Boolean, isComplete: Boolean) {
         Timber.d("stopRecording: $amplitudes")
         if (delete)
             deleteExpiredRecordings()
 
         if (isRecording)
-            recorderListener.onComplete(this)
+            if (isComplete)
+                recorderListener.onComplete(this)
+            else
+                recorderListener.onStart(this)
 
         recorder?.let {
             isRecording = false
@@ -308,6 +307,10 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         output.write(value.toByteArray())
     }
 
+    override fun complete() {
+        recorderListener.onComplete(this)
+    }
+
     fun getFileLocation(): String? = if (::wavPath.isInitialized) wavPath else null
 
     interface InformationRetriever{
@@ -317,21 +320,27 @@ class WavRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     inline fun setRecorderListener(
         crossinline start: () -> Unit = {},
+        crossinline stop: () -> Unit = {},
         crossinline complete: () -> Unit = {},
         crossinline validate: () -> Unit = {}
     ){
         setRecorderListener(object: RecorderListener {
-
-            override fun onComplete(recorderController: RecorderController) {
-                recPlayerView.addLoader()
-                retriever?.setPath(getFileLocation() ?: "")
-                retriever?.setAmplitudes(amplitudes)
-                complete()
-            }
-
             override fun onStart(recorderController: RecorderController) {
                 recPlayerView.onStart()
                 start()
+            }
+
+            override fun onStop(recorderController: RecorderController) {
+                recPlayerView.showLoader()
+                recPlayerView.toggleValidate(false)
+                stop()
+            }
+
+            override fun onComplete(recorderController: RecorderController) {
+                recPlayerView.showLoader()
+                retriever?.setPath(getFileLocation() ?: "")
+                retriever?.setAmplitudes(amplitudes)
+                complete()
             }
 
             override fun onValidate(recorderController: RecorderController) {

@@ -4,11 +4,9 @@ import android.media.*
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.net.Uri
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
 import kotlinx.coroutines.*
 import timber.log.Timber
@@ -20,7 +18,6 @@ import java.util.*
 import kotlin.experimental.or
 import kotlin.properties.Delegates
 
-private const val TAG = "DefaultRecorderController"
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_SAMPLERATE_INDEX = 4
 private const val RECORDER_BITRATE = 128000
@@ -54,7 +51,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     override fun toggle() {
         if (isRecording)
-            stopRecording(false)
+            stopRecording(false, isComplete = false)
         else {
             if (recordedBefore) {
                 amplitudes.clear()
@@ -91,9 +88,9 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     private fun destroyRecorder() {
         if (isRecording)
-            stopRecording(true)
+            stopRecording(true, isComplete = false)
         else
-            stopRecording(false)
+            stopRecording(false, isComplete = false)
         handler.removeCallbacks(periodicCallback)
     }
 
@@ -164,12 +161,15 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         }
     }
 
-    override fun stopRecording(delete: Boolean) {
+    override fun stopRecording(delete: Boolean, isComplete: Boolean) {
         if (delete)
             deleteExpiredRecordings()
 
         if (isRecording)
-            recorderListener.onComplete(this)
+            if (isComplete)
+                recorderListener.onComplete(this)
+            else
+                recorderListener.onStop(this)
 
         recorder?.let {
             isRecording = false
@@ -279,7 +279,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         val audioRecord: AudioRecord?
         try {
             audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 RECORDER_SAMPLERATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 RECORDER_AUDIO_ENCODING,
@@ -299,6 +299,10 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         return audioRecord
     }
 
+    override fun complete() {
+        recorderListener.onComplete(this)
+    }
+
     fun restoreStateOnNewRecView(){
         playerController.controllingView = recPlayerView
         playerController.attachPlayerController()
@@ -315,21 +319,28 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     inline fun setRecorderListener(
         crossinline start: () -> Unit = {},
+        crossinline stop: () -> Unit = {},
         crossinline complete: () -> Unit = {},
         crossinline validate: () -> Unit = {}
     ){
         setRecorderListener(object: RecorderListener {
-
-            override fun onComplete(recorderController: RecorderController) {
-                recPlayerView.addLoader()
-                retriever?.setPath(getFileLocation() ?: "")
-                retriever?.setAmplitudes(amplitudes)
-                complete()
-            }
-
             override fun onStart(recorderController: RecorderController) {
                 recPlayerView.onStart()
                 start()
+            }
+
+            override fun onStop(recorderController: RecorderController) {
+                recPlayerView.showLoader()
+                recPlayerView.toggleValidate(false)
+                stop()
+            }
+
+            override fun onComplete(recorderController: RecorderController) {
+                recPlayerView.showLoader()
+                recPlayerView.toggleValidate(true)
+                retriever?.setPath(getFileLocation() ?: "")
+                retriever?.setAmplitudes(amplitudes)
+                complete()
             }
 
             override fun onValidate(recorderController: RecorderController) {

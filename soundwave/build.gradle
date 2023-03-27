@@ -4,6 +4,14 @@ apply plugin: 'kotlin-android'
 group='com.github.Haran'
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/home/arahier/.android/debug.keystore')
+            storePassword 'android'
+            keyAlias 'android'
+            keyPassword 'android'
+        }
+    }
     compileSdkVersion 31
 
     compileOptions {
@@ -19,6 +27,7 @@ android {
         versionName "1.2.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig signingConfigs.debug
     }
 
     buildTypes {

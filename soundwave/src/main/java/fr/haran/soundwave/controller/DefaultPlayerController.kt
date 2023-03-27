@@ -9,9 +9,11 @@ import fr.haran.soundwave.ui.ControllingView
 import java.io.IOException
 import java.lang.IllegalStateException
 
-private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(var controllingView: ControllingView, cachePath: String? = null):
+class DefaultPlayerController(
+    var controllingView: ControllingView,
+    cachePath: String? = null
+):
     PlayerController {
 
     private var mediaPlayer: MediaPlayer? = null
@@ -22,6 +24,7 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
             (mediaPlayer as? CacheMediaPlayer)?.cacheDir = value
     }
 
+    private lateinit var playerListener: PlayerListener
     private val handler = Handler(Looper.getMainLooper())
     private var isPrepared = false
     private var runnable: Runnable = object: Runnable {
@@ -42,7 +45,6 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
             }
         }
     }
-    private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
         mediaPlayer?.let { player ->

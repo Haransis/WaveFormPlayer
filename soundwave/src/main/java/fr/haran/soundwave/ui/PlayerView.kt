@@ -103,7 +103,6 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
             isClickable = true
         }
         pause = view.findViewById<ImageButton>(R.id.pause).apply{
-            backgroundTintList = ColorStateList.valueOf(secondaryColor)
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
             setOnClickListener { playerController.toggle() }

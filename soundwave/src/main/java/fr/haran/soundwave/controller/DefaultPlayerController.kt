@@ -153,19 +153,19 @@ class DefaultPlayerController(
     }
 
     @Throws(IOException::class)
-    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: List<Float>){
+    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: List<Float>? = null){
         resetMediaPlayer()
         mediaPlayer!!.setDataSource(context, uri)
         preparePlayer()
-        controllingView.setAmplitudes(amplitudes)
+        amplitudes?.let { controllingView.setAmplitudes(amplitudes) }
     }
 
     @Throws(IOException::class)
-    fun addAudioUrl(url: String, amplitudes: List<Float>){
+    fun addAudioUrl(url: String, amplitudes: List<Float>? = null){
         resetMediaPlayer(true)
         mediaPlayer!!.setDataSource(url)
         preparePlayer()
-        controllingView.setAmplitudes(amplitudes)
+        amplitudes?.let { controllingView.setAmplitudes(amplitudes) }
     }
 
     inline fun setPlayerListener(

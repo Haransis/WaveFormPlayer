@@ -10,6 +10,7 @@ import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import fr.haran.soundwave.R
+import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
@@ -28,6 +29,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         set(value){
             field = value
             maxAmplitude = field.maxOrNull() ?: 1f
+            measureAmplitudesDimensions(width,height)
             invalidate()
         }
     private val waveForm: Path = Path()
@@ -107,10 +109,14 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        measureAmplitudesDimensions(w,h)
+    }
+
+    private fun measureAmplitudesDimensions(width: Int, height: Int) {
         val xpad = (paddingLeft + paddingRight).toFloat()
         val ypad = (paddingTop + paddingBottom).toFloat()
-        availableWidth = (w.toFloat() - xpad).roundToInt()
-        availableHeight = (h.toFloat() - ypad).roundToInt()
+        availableWidth = (width.toFloat() - xpad).roundToInt()
+        availableHeight = (height.toFloat() - ypad).roundToInt()
         origin = availableHeight/2f
         barWidth = availableWidth.toFloat() / amplitudes.size
         barHeight = availableHeight.toFloat() / maxAmplitude / 2f
@@ -123,6 +129,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+        Timber.d("$maxAmplitude")
         canvas?.apply {
             when (val index = (amplitudes.size*progression).toInt()) {
                 0, 1 -> {

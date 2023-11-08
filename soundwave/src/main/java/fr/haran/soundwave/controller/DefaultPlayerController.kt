@@ -6,15 +6,15 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import fr.haran.soundwave.ui.ControllingView
+import timber.log.Timber
 import java.io.IOException
 import java.lang.IllegalStateException
 
 private const val INTERVAL: Long = 90
 class DefaultPlayerController(
-    var controllingView: ControllingView,
+    var controllingView: ControllingView?,
     cachePath: String? = null
-):
-    PlayerController {
+): PlayerController {
 
     private var mediaPlayer: MediaPlayer? = null
     var cachePath: String? = cachePath
@@ -30,7 +30,7 @@ class DefaultPlayerController(
     private var runnable: Runnable = object: Runnable {
         override fun run() {
             mediaPlayer?.let {
-                controllingView.updatePlayerPercent(
+                controllingView?.updatePlayerPercent(
                     it.duration,
                     it.currentPosition
                 )
@@ -51,9 +51,10 @@ class DefaultPlayerController(
             player.prepareAsync()
             player.setOnPreparedListener{
                 isPrepared = true
-                controllingView.updatePlayerPercent(it.duration,0)
+                controllingView?.updatePlayerPercent(it.duration,0)
             }
             player.setOnCompletionListener {
+                Timber.d("complete")
                 playerListener.onComplete(this)
                 handler.removeCallbacks(runnable)
             }
@@ -70,11 +71,11 @@ class DefaultPlayerController(
                 return@setOnErrorListener true
             }
         }
-        controllingView.attachPlayerController(this)
+        controllingView?.attachPlayerController(this)
     }
 
     fun attachPlayerController(){
-        controllingView.attachPlayerController(this)
+        controllingView?.attachPlayerController(this)
     }
 
     override fun isPlaying(): Boolean{
@@ -111,7 +112,7 @@ class DefaultPlayerController(
     }
 
     override fun <T>setTitle(title: T){
-        controllingView.setText(title)
+        controllingView?.setText(title)
     }
 
     override fun pause() {
@@ -129,6 +130,7 @@ class DefaultPlayerController(
         resetMediaPlayer()
         mediaPlayer?.release()
         mediaPlayer = null
+        controllingView = null
         handler.removeCallbacks(runnable)
     }
 
@@ -157,7 +159,7 @@ class DefaultPlayerController(
         resetMediaPlayer()
         mediaPlayer!!.setDataSource(context, uri)
         preparePlayer()
-        amplitudes?.let { controllingView.setAmplitudes(amplitudes) }
+        amplitudes?.let { controllingView?.setAmplitudes(amplitudes) }
     }
 
     @Throws(IOException::class)
@@ -165,7 +167,7 @@ class DefaultPlayerController(
         resetMediaPlayer(true)
         mediaPlayer!!.setDataSource(url)
         preparePlayer()
-        amplitudes?.let { controllingView.setAmplitudes(amplitudes) }
+        amplitudes?.let { controllingView?.setAmplitudes(amplitudes) }
     }
 
     inline fun setPlayerListener(
@@ -182,17 +184,17 @@ class DefaultPlayerController(
             }
 
             override fun onPlay(playerController: PlayerController) {
-                controllingView.onPlay()
+                controllingView?.onPlay()
                 play()
             }
 
             override fun onPause(playerController: PlayerController) {
-                controllingView.onPause()
+                controllingView?.onPause()
                 pause()
             }
 
             override fun onComplete(playerController: PlayerController) {
-                controllingView.onComplete()
+                controllingView?.onComplete()
                 complete()
             }
 
@@ -205,7 +207,7 @@ class DefaultPlayerController(
             }
 
             override fun onError(playerController: PlayerController, e: Exception) {
-                controllingView.onError()
+                controllingView?.onError()
                 error(e)
             }
         })

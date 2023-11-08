@@ -37,7 +37,7 @@ open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLay
 ControllingView, View.OnTouchListener{
 
     private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
-    lateinit var countDown: CountDownTimer
+    private var countDown: CountDownTimer? = null
     private var firstEventX: Float? = null
     private var isScrolling: Boolean = false
     private lateinit var timerTv: TextView
@@ -91,7 +91,6 @@ ControllingView, View.OnTouchListener{
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
                 if (alreadyRecorded) {
-                    toggleRecordAgain(false)
                     recorder.validate()
                 }
                 else if (checkPermission(context)){
@@ -220,8 +219,7 @@ ControllingView, View.OnTouchListener{
     }
 
     fun onRecordComplete() {
-        if (::countDown.isInitialized)
-            countDown.cancel()
+        countDown?.cancel()
         stopFab.visibility = View.GONE
         stopText.visibility = View.GONE
         recordFab.visibility = View.VISIBLE
@@ -242,6 +240,7 @@ ControllingView, View.OnTouchListener{
         recordFab.imageTintList = ColorStateList.valueOf(if (!enable) playColor else recordColor)
         recordFab.foregroundTintList = ColorStateList.valueOf(if (!enable) playColor else recordColor)
         recordFab.isEnabled = enable
+        timerTv.text = if (!enable) SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(duration.toLong())) else "02:00"
         if (enable)
             recordFab.setImageResource(R.drawable.ic_check)
         else
@@ -298,6 +297,11 @@ ControllingView, View.OnTouchListener{
 
     fun resetAmplitudes() {
         recView.resetAmplitudes()
+    }
+
+    fun destroyCountdown() {
+        countDown?.cancel()
+        countDown = null
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {

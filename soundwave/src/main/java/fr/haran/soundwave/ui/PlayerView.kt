@@ -16,6 +16,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.R
 import fr.haran.soundwave.utils.Utils
+import timber.log.Timber
 import kotlin.math.abs
 
 open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener, ControllingView{
@@ -60,6 +61,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     }
 
     override fun onPause(){
+        play.setImageResource(R.drawable.ic_play)
         play.visibility = View.VISIBLE
         pause.visibility = View.GONE
     }
@@ -84,6 +86,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     }
 
     override fun attachPlayerController(playerController: PlayerController){
+        onPause()
         this.playerController = playerController
     }
 

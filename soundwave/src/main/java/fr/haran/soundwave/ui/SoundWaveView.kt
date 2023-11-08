@@ -60,7 +60,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
 
     private fun Path.buildPath(start: Int, finish: Int){
         this.reset()
-        this.moveTo(start*barWidth, origin)
+        this.moveTo(start*barWidth, (origin + amplitudes[0] * barHeight))
         if (!shouldReflect) {
             for (i in (start until finish)) {
                 this.lineTo(i * barWidth, (origin + amplitudes[i] * barHeight))
@@ -127,26 +127,19 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         invalidate()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        Timber.d("$maxAmplitude")
-        canvas?.apply {
+        canvas.apply {
             when (val index = (amplitudes.size*progression).toInt()) {
                 0, 1 -> {
                     waveForm.buildPath(0,amplitudes.size)
                     drawPath(waveForm, nonPlayedPaint)
                 }
-                in 2..(amplitudes.size-6) -> {
-                    waveForm.buildPath(0,index+5)
+                in 2..(amplitudes.size-2) -> {
+                    waveForm.buildPath(0,index+1)
                     drawPath(waveForm, playedPaint)
                     waveForm.buildPath(index,amplitudes.size)
                     drawPath(waveForm, nonPlayedPaint)
-                }
-                in (amplitudes.size-5) until amplitudes.size -> {
-                    waveForm.buildPath(0,index)
-                    drawPath(waveForm, nonPlayedPaint)
-                    waveForm.buildPath(index-5, amplitudes.size)
-                    drawPath(waveForm, playedPaint)
                 }
                 else -> {
                     waveForm.buildPath(0,amplitudes.size)

@@ -7,13 +7,16 @@ import android.util.Log
 import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withSkew
 import fr.haran.soundwave.R
+import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
 
 const val MAX_AMPLITUDE = Short.MAX_VALUE/2
-private const val STROKE_WIDTH = 3F
+private const val STROKE_WIDTH = 4F
 class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var iteration = 0
@@ -57,15 +60,14 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
             }
         }
         initializePaint(recordPaint, recordColor)
-        playPaint.strokeWidth = STROKE_WIDTH + 0.3F //TODO choose value
-        initializePaint(playPaint, playColor)
+        initializePaint(playPaint, playColor, STROKE_WIDTH+2f)
     }
 
-    private fun initializePaint(paint: Paint, paintColor: Int) {
+    private fun initializePaint(paint: Paint, paintColor: Int, width: Float = STROKE_WIDTH) {
         paint.apply {
             color = paintColor
             flags = Paint.ANTI_ALIAS_FLAG
-            strokeWidth = STROKE_WIDTH
+            strokeWidth = width
             style = Paint.Style.STROKE
         }
     }
@@ -105,14 +107,14 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
         }
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas?.apply {
+        canvas.apply {
             drawPath(waveForm, recordPaint)
             if (isPlaying){
                 measure.setPath(waveForm, false)
                 measure.getPosTan(measure.length, aCoordinates, null)
-                clipRect((aCoordinates[0]*progression).toInt(),0,availableWidth,availableHeight)
+                clipRect((getRealWidth()*progression).toInt(),0,availableWidth,availableHeight)
                 drawPath(waveForm, playPaint)
             }
         }
@@ -127,8 +129,10 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
     fun drawAmplitudes(amplitudes: Array<Int>){
         waveForm.reset()
         waveForm.moveTo(0F, origin.toFloat())
-        for (index in amplitudes.indices)
-            waveForm.lineTo(index * barWidth, origin + amplitudes[index] * barHeight)
+        val newBarWidth = availableWidth.toFloat()/amplitudes.size
+        for (index in amplitudes.indices) {
+            waveForm.lineTo(index * newBarWidth, origin + amplitudes[index] * barHeight)
+        }
         invalidate()
     }
 

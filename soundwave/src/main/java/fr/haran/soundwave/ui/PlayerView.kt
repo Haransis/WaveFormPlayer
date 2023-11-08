@@ -16,10 +16,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.R
 import fr.haran.soundwave.utils.Utils
+import timber.log.Timber
 import kotlin.math.abs
 
-
-private const val TAG = "PlayerView"
 open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs), View.OnTouchListener, ControllingView{
 
     private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
@@ -62,6 +61,7 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     }
 
     override fun onPause(){
+        play.setImageResource(R.drawable.ic_play)
         play.visibility = View.VISIBLE
         pause.visibility = View.GONE
     }
@@ -73,6 +73,11 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         pause.visibility = View.GONE
     }
 
+    override fun onError() {
+        onComplete()
+        play.isClickable = false
+    }
+
     override fun updatePlayerPercent(duration: Int, currentPosition: Int){
         if(!isScrolling)
             soundWaveView.updateProgression(currentPosition / duration.toFloat())
@@ -81,15 +86,14 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     }
 
     override fun attachPlayerController(playerController: PlayerController){
+        onPause()
         this.playerController = playerController
     }
 
     @SuppressLint("InflateParams")
     private fun initView(context: Context) {
         val view: View = LayoutInflater.from(context).inflate(R.layout.player_view, this, true)
-        soundWaveView = view.findViewById<SoundWaveView>(
-            R.id.sound_wave_view
-        ).apply{
+        soundWaveView = view.findViewById<SoundWaveView>(R.id.sound_wave_view).apply{
             playedColor = mainColor
             nonPlayedColor = secondaryColor
             shouldReflect = this@PlayerView.shouldReflect
@@ -98,12 +102,14 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
         play = view.findViewById<FloatingActionButton>(R.id.play).apply{
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
-            setOnClickListener { playerController.toggle() } }
+            setOnClickListener { playerController.toggle() }
+            isClickable = true
+        }
         pause = view.findViewById<ImageButton>(R.id.pause).apply{
-            backgroundTintList = ColorStateList.valueOf(secondaryColor)
             imageTintList = ColorStateList.valueOf(mainColor)
             foregroundTintList = ColorStateList.valueOf(mainColor)
-            setOnClickListener { playerController.toggle() } }
+            setOnClickListener { playerController.toggle() }
+        }
         title = view.findViewById<TextView>(R.id.sound_title).apply {
             text = this@PlayerView.text
         }

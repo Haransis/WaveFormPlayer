@@ -1,23 +1,26 @@
 package fr.haran.soundwave.controller
 
-import android.icu.text.SimpleDateFormat
 import android.media.*
 import android.media.audiofx.AutomaticGainControl
 import android.media.audiofx.NoiseSuppressor
 import android.net.Uri
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import fr.haran.soundwave.ui.RecPlayerView
+import fr.haran.soundwave.utils.Utils.normalize
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.*
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.experimental.or
+import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.properties.Delegates
 
-private const val TAG = "DefaultRecorderController"
 private const val RECORDER_SAMPLERATE = 44100
 private const val RECORDER_SAMPLERATE_INDEX = 4
 private const val RECORDER_BITRATE = 128000
@@ -25,9 +28,8 @@ private const val RECORDER_CHANNELS: Int = 1
 private const val RECORDER_AUDIO_ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
 class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
 
-    private var delta = 0
+    private var start = 0L
     private var recordedBefore = false
-    private var isRecording = false
     private var recorder: AudioRecord? = null
     private var codec: MediaCodec? = null
     private var bufferSize by Delegates.notNull<Int>()
@@ -35,6 +37,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     private val handler = Handler(Looper.getMainLooper())
     private lateinit var aacPath: String
     private lateinit var recorderListener: RecorderListener
+    private var writerJob: Job? = null
     private var playerController: DefaultPlayerController = DefaultPlayerController(recPlayerView).apply {
         setPlayerListener()
     }
@@ -43,14 +46,14 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         override fun run() {
             val currentTime = SystemClock.uptimeMillis()
             recPlayerView.addAmplitude(amplitudes.last())
-            if (isRecording)
+            if (isRecording())
                 handler.postAtTime(this, currentTime+recPlayerView.interval)
         }
     }
 
     override fun toggle() {
-        if (isRecording)
-            stopRecording(false)
+        if (isRecording())
+            stopRecording(false, isComplete = false)
         else {
             if (recordedBefore) {
                 amplitudes.clear()
@@ -68,9 +71,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             aacFile.canonicalFile.delete()
     }
 
-    override fun isRecording(): Boolean {
-        return isRecording
-    }
+    override fun isRecording(): Boolean = writerJob?.isActive == true
 
     override fun prepareRecorder() {
         bufferSize = AudioRecord.getMinBufferSize(
@@ -86,11 +87,12 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     private fun destroyRecorder() {
-        if (isRecording)
-            stopRecording(true)
+        if (isRecording())
+            stopRecording(true, isComplete = false)
         else
-            stopRecording(false)
+            stopRecording(false, isComplete = false)
         handler.removeCallbacks(periodicCallback)
+        retriever = null
     }
 
     override fun setRecorderListener(recorderListener: RecorderListener): RecorderController {
@@ -104,9 +106,12 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     override fun startRecording() {
-        val date = Date()
-        val dateFormat = SimpleDateFormat("ddMMyyyy-ssmmhh", Locale.getDefault())
-        aacPath = "$defaultPath/${dateFormat.format(date)}.aac"
+        val date = DateTimeFormatter
+            .ofPattern("ddMMyyyy-ssmmhh")
+            .withLocale(Locale.getDefault())
+            .withZone(ZoneId.of("UTC"))
+            .format(Instant.now())
+        aacPath = "$defaultPath/$date.aac"
 
         try {
             codec = createMediaCodec(bufferSize)
@@ -114,26 +119,18 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         } catch (ex: SecurityException) {
             throw ex
         }
-        // This call was too long for just a recording
-        //setAudioEffects()
         codec!!.start()
         recorder!!.startRecording()
-        isRecording = true
 
-        CoroutineScope(Dispatchers.IO).launch {
-            writeAudioDataToFile()
-        }
+        writeAudioDataToFile()
         recordedBefore = true
         recorderListener.onStart(this)
     }
 
-    private suspend fun writeAudioDataToFile() {
-        withContext(Dispatchers.IO) {
+    private fun writeAudioDataToFile() {
+        writerJob = CoroutineScope(Dispatchers.IO).launch {
+            start = SystemClock.elapsedRealtime()
             val bufferInfo = MediaCodec.BufferInfo()
-            // Write the output audio in byte
-            var start = SystemClock.elapsedRealtime()
-            var now: Long
-            val bData = ByteArray(bufferSize)
             var os: FileOutputStream? = null
             try {
                 os = FileOutputStream(aacPath)
@@ -142,25 +139,13 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             }
             handler.post { recPlayerView.startCountDown() }
             handler.post(periodicCallback)
-            while (isRecording) {
-                val success = handleCodecInput(recorder!!, codec!!)
+            while (isRecording()) {
+                val success = handleCodecInput(recorder, codec!!)
                 if (success) {
                     try {
                         handleCodecOutput(codec!!, bufferInfo, os!!)
                     } catch (e: IOException) {
                         e.printStackTrace()
-                    }
-                    recorder!!.read(bData, 0, bufferSize)
-                    now = SystemClock.elapsedRealtime()
-                    if (now-start > recPlayerView.interval){
-                        val sData = ShortArray(bData.size / 2) {
-                            (bData[it * 2] + (bData[(it * 2) + 1].toInt() shl 8)).toShort()
-                        }
-                        val iData = sData.map { it.toInt() }
-                        val newAmplitude = iData.maxByOrNull { kotlin.math.abs(it) } ?: 0
-                        delta = amplitudes.last() - newAmplitude
-                        amplitudes += newAmplitude
-                        start = now
                     }
                 }
             }
@@ -170,54 +155,73 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
                 e.printStackTrace()
             }
             handler.post { recPlayerView.onRecordComplete() }
-            playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$aacPath"))
+            try {
+                playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$aacPath"))
+            } catch (exception: IOException) {
+                Timber.w(exception)
+            }
         }
     }
 
-    override fun stopRecording(delete: Boolean) {
-        Log.d(TAG, "stopRecording: $amplitudes")
+    override fun stopRecording(delete: Boolean, isComplete: Boolean) {
+        writerJob?.cancel("recording was stopped")
         if (delete)
             deleteExpiredRecordings()
 
-        if (isRecording)
+        if (isComplete)
             recorderListener.onComplete(this)
+        else
+            recorderListener.onStop(this)
 
         recorder?.let {
-            isRecording = false
             it.stop()
             it.release()
-            recorder = null
         }
+        recorder = null
         handler.removeCallbacks(periodicCallback)
     }
 
     @Throws(IOException::class)
     private fun handleCodecInput(
-        audioRecord: AudioRecord,
+        audioRecord: AudioRecord?,
         mediaCodec: MediaCodec
     ): Boolean {
-        val audioRecordData = ByteArray(bufferSize)
-        val length = audioRecord.read(audioRecordData, 0, audioRecordData.size)
-        if (length == AudioRecord.ERROR_BAD_VALUE || length == AudioRecord.ERROR_INVALID_OPERATION || length != bufferSize) {
-            if (length != bufferSize) {
-                return false
+        if (audioRecord != null) {
+            val audioRecordData = ByteArray(bufferSize)
+            val length = audioRecord.read(audioRecordData, 0, audioRecordData.size)
+            if (length == AudioRecord.ERROR_BAD_VALUE || length == AudioRecord.ERROR_INVALID_OPERATION || length != bufferSize) {
+                if (length != bufferSize) {
+                    return false
+                }
             }
-        }
 
-        val codecInputBufferIndex = mediaCodec.dequeueInputBuffer((10 * 1000).toLong())
-        if (codecInputBufferIndex >= 0) {
-            val inputBuffer = mediaCodec.getInputBuffer(codecInputBufferIndex)
-            inputBuffer?.clear()
-            inputBuffer?.put(audioRecordData)
-            mediaCodec.queueInputBuffer(
-                codecInputBufferIndex,
-                0,
-                length,
-                0,
-                0
-            )
+            val codecInputBufferIndex = mediaCodec.dequeueInputBuffer((10 * 1000).toLong())
+            if (codecInputBufferIndex >= 0) {
+                val inputBuffer = mediaCodec.getInputBuffer(codecInputBufferIndex)
+                inputBuffer?.clear()
+                inputBuffer?.put(audioRecordData)
+                mediaCodec.queueInputBuffer(
+                    codecInputBufferIndex,
+                    0,
+                    length,
+                    0,
+                    0
+                )
+            }
+
+            val now = SystemClock.elapsedRealtime()
+            if (now - start >= recPlayerView.interval) {
+                val sData = ShortArray(audioRecordData.size / 2) {
+                    (audioRecordData[it * 2] + (audioRecordData[(it * 2) + 1].toInt() shl 8)).toShort()
+                }
+                val iData = sData.map { it.toInt() }
+                val newAmplitude = iData.maxByOrNull { abs(it) } ?: 0
+                amplitudes += newAmplitude
+                start = now
+            }
+            return true
         }
-        return true
+        else return false
     }
 
     @Throws(IOException::class)
@@ -247,7 +251,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         }
     }
 
-    private fun createAdtsHeader(length: Int): ByteArray? {
+    private fun createAdtsHeader(length: Int): ByteArray {
         val frameLength = length + 7
         val adtsHeader = ByteArray(7)
         adtsHeader[0] = 0xFF.toByte() // Sync Word
@@ -278,9 +282,9 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
         val audioRecord: AudioRecord?
         try {
             audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
                 RECORDER_SAMPLERATE,
-                RECORDER_CHANNELS,
+                AudioFormat.CHANNEL_IN_MONO,
                 RECORDER_AUDIO_ENCODING,
                 bufferSize * 10
             )
@@ -288,18 +292,18 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             throw ex
         }
         if (audioRecord.state != AudioRecord.STATE_INITIALIZED) {
-            Log.d(TAG, "Unable to initialize AudioRecord")
+            Timber.e("createAudioRecord: Unable to initialize AudioRecord")
             throw RuntimeException("Unable to initialize AudioRecord")
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            if (NoiseSuppressor.isAvailable())
-                NoiseSuppressor.create(audioRecord.audioSessionId)?.let { it.enabled = true }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            if (AutomaticGainControl.isAvailable())
-                AutomaticGainControl.create(audioRecord.audioSessionId)?.let { it.enabled = true }
-        }
+        if (NoiseSuppressor.isAvailable())
+            NoiseSuppressor.create(audioRecord.audioSessionId)?.let { it.enabled = true }
+        if (AutomaticGainControl.isAvailable())
+            AutomaticGainControl.create(audioRecord.audioSessionId)?.let { it.enabled = true }
         return audioRecord
+    }
+
+    override fun complete() {
+        recorderListener.onComplete(this)
     }
 
     fun restoreStateOnNewRecView(){
@@ -318,21 +322,29 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
 
     inline fun setRecorderListener(
         crossinline start: () -> Unit = {},
+        crossinline stop: () -> Unit = {},
         crossinline complete: () -> Unit = {},
         crossinline validate: () -> Unit = {}
     ){
         setRecorderListener(object: RecorderListener {
-
-            override fun onComplete(recorderController: RecorderController) {
-                recPlayerView.addLoader()
-                retriever?.setPath(getFileLocation() ?: "")
-                retriever?.setAmplitudes(amplitudes)
-                complete()
-            }
-
             override fun onStart(recorderController: RecorderController) {
                 recPlayerView.onStart()
                 start()
+            }
+
+            override fun onStop(recorderController: RecorderController) {
+                recPlayerView.showLoader()
+                recPlayerView.toggleValidate(false)
+                stop()
+            }
+
+            override fun onComplete(recorderController: RecorderController) {
+                recPlayerView.showLoader()
+                recPlayerView.toggleValidate(true)
+                retriever?.setPath(getFileLocation() ?: "")
+                val recordedAmplitudes = amplitudes.toList()
+                retriever?.setAmplitudes(recordedAmplitudes.normalize())
+                complete()
             }
 
             override fun onValidate(recorderController: RecorderController) {

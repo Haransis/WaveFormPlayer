@@ -6,13 +6,15 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import fr.haran.soundwave.ui.ControllingView
+import timber.log.Timber
 import java.io.IOException
 import java.lang.IllegalStateException
 
-private const val TAG = "PlayerController"
 private const val INTERVAL: Long = 90
-class DefaultPlayerController(var controllingView: ControllingView, cachePath: String? = null):
-    PlayerController {
+class DefaultPlayerController(
+    var controllingView: ControllingView?,
+    cachePath: String? = null
+): PlayerController {
 
     private var mediaPlayer: MediaPlayer? = null
     var cachePath: String? = cachePath
@@ -22,12 +24,13 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
             (mediaPlayer as? CacheMediaPlayer)?.cacheDir = value
     }
 
+    private lateinit var playerListener: PlayerListener
     private val handler = Handler(Looper.getMainLooper())
     private var isPrepared = false
     private var runnable: Runnable = object: Runnable {
         override fun run() {
             mediaPlayer?.let {
-                controllingView.updatePlayerPercent(
+                controllingView?.updatePlayerPercent(
                     it.duration,
                     it.currentPosition
                 )
@@ -42,25 +45,37 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
             }
         }
     }
-    private lateinit var playerListener: PlayerListener
 
     override fun preparePlayer(){
         mediaPlayer?.let { player ->
             player.prepareAsync()
             player.setOnPreparedListener{
                 isPrepared = true
-                controllingView.updatePlayerPercent(it.duration,0)
+                controllingView?.updatePlayerPercent(it.duration,0)
             }
             player.setOnCompletionListener {
+                Timber.d("complete")
                 playerListener.onComplete(this)
                 handler.removeCallbacks(runnable)
             }
+            player.setOnErrorListener {
+                    _, what, extra ->
+                val exception = when {
+                    what == MediaPlayer.MEDIA_ERROR_SERVER_DIED -> Exception("Could not read from cache")
+                    extra == MediaPlayer.MEDIA_ERROR_IO -> IOException("Connection with server died")
+                    extra == MediaPlayer.MEDIA_ERROR_MALFORMED -> RuntimeException("Media is corrupt")
+                    else -> RuntimeException("Timed out")
+                }
+                playerListener.onError(this, exception)
+                mediaPlayer = null
+                return@setOnErrorListener true
+            }
         }
-        controllingView.attachPlayerController(this)
+        controllingView?.attachPlayerController(this)
     }
 
     fun attachPlayerController(){
-        controllingView.attachPlayerController(this)
+        controllingView?.attachPlayerController(this)
     }
 
     override fun isPlaying(): Boolean{
@@ -97,7 +112,7 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
     }
 
     override fun <T>setTitle(title: T){
-        controllingView.setText(title)
+        controllingView?.setText(title)
     }
 
     override fun pause() {
@@ -115,6 +130,7 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
         resetMediaPlayer()
         mediaPlayer?.release()
         mediaPlayer = null
+        controllingView = null
         handler.removeCallbacks(runnable)
     }
 
@@ -122,6 +138,8 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
         if (mediaPlayer != null) {
             if (mediaPlayer?.isPlaying == true) mediaPlayer?.stop()
             mediaPlayer?.reset()
+            mediaPlayer = null
+            resetMediaPlayer(remote)
         } else {
             if (remote)
                 mediaPlayer = CacheMediaPlayer().apply { cacheDir = cachePath }
@@ -137,19 +155,19 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
     }
 
     @Throws(IOException::class)
-    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: List<Float>){
+    fun addAudioFileUri(context: Context, uri: Uri, amplitudes: List<Float>? = null){
         resetMediaPlayer()
         mediaPlayer!!.setDataSource(context, uri)
         preparePlayer()
-        controllingView.setAmplitudes(amplitudes)
+        amplitudes?.let { controllingView?.setAmplitudes(amplitudes) }
     }
 
     @Throws(IOException::class)
-    fun addAudioUrl(url: String, amplitudes: List<Float>){
+    fun addAudioUrl(url: String, amplitudes: List<Float>? = null){
         resetMediaPlayer(true)
         mediaPlayer!!.setDataSource(url)
         preparePlayer()
-        controllingView.setAmplitudes(amplitudes)
+        amplitudes?.let { controllingView?.setAmplitudes(amplitudes) }
     }
 
     inline fun setPlayerListener(
@@ -157,7 +175,8 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
         crossinline play: () -> Unit = {},
         crossinline pause: () -> Unit = {},
         crossinline complete: () -> Unit = {},
-        crossinline progress: (Int, Int) -> Unit = { _, _ -> }
+        crossinline progress: (Int, Int) -> Unit = { _, _ -> },
+        crossinline error: (Exception) -> Unit = { _ -> }
     ){
         setPlayerListener(object: PlayerListener {
             override fun onPrepared(playerController: PlayerController) {
@@ -165,17 +184,17 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
             }
 
             override fun onPlay(playerController: PlayerController) {
-                controllingView.onPlay()
+                controllingView?.onPlay()
                 play()
             }
 
             override fun onPause(playerController: PlayerController) {
-                controllingView.onPause()
+                controllingView?.onPause()
                 pause()
             }
 
             override fun onComplete(playerController: PlayerController) {
-                controllingView.onComplete()
+                controllingView?.onComplete()
                 complete()
             }
 
@@ -185,6 +204,11 @@ class DefaultPlayerController(var controllingView: ControllingView, cachePath: S
                 currentTimeStamp: Int
             ) {
                 progress(duration,currentTimeStamp)
+            }
+
+            override fun onError(playerController: PlayerController, e: Exception) {
+                controllingView?.onError()
+                error(e)
             }
         })
     }

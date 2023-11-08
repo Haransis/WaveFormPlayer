@@ -10,10 +10,10 @@ import android.view.View
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import fr.haran.soundwave.R
+import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private const val TAG = "SoundWaveView"
 open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, attrs) {
 
     private var playedPaint: Paint
@@ -29,6 +29,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         set(value){
             field = value
             maxAmplitude = field.maxOrNull() ?: 1f
+            measureAmplitudesDimensions(width,height)
             invalidate()
         }
     private val waveForm: Path = Path()
@@ -59,7 +60,7 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
 
     private fun Path.buildPath(start: Int, finish: Int){
         this.reset()
-        this.moveTo(start*barWidth, origin)
+        this.moveTo(start*barWidth, (origin + amplitudes[0] * barHeight))
         if (!shouldReflect) {
             for (i in (start until finish)) {
                 this.lineTo(i * barWidth, (origin + amplitudes[i] * barHeight))
@@ -108,10 +109,14 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        measureAmplitudesDimensions(w,h)
+    }
+
+    private fun measureAmplitudesDimensions(width: Int, height: Int) {
         val xpad = (paddingLeft + paddingRight).toFloat()
         val ypad = (paddingTop + paddingBottom).toFloat()
-        availableWidth = (w.toFloat() - xpad).roundToInt()
-        availableHeight = (h.toFloat() - ypad).roundToInt()
+        availableWidth = (width.toFloat() - xpad).roundToInt()
+        availableHeight = (height.toFloat() - ypad).roundToInt()
         origin = availableHeight/2f
         barWidth = availableWidth.toFloat() / amplitudes.size
         barHeight = availableHeight.toFloat() / maxAmplitude / 2f
@@ -122,25 +127,19 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         invalidate()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas?.apply {
+        canvas.apply {
             when (val index = (amplitudes.size*progression).toInt()) {
                 0, 1 -> {
                     waveForm.buildPath(0,amplitudes.size)
                     drawPath(waveForm, nonPlayedPaint)
                 }
-                in 2..(amplitudes.size-6) -> {
-                    waveForm.buildPath(0,index+5)
+                in 2..(amplitudes.size-2) -> {
+                    waveForm.buildPath(0,index+1)
                     drawPath(waveForm, playedPaint)
                     waveForm.buildPath(index,amplitudes.size)
                     drawPath(waveForm, nonPlayedPaint)
-                }
-                in (amplitudes.size-5) until amplitudes.size -> {
-                    waveForm.buildPath(0,index)
-                    drawPath(waveForm, nonPlayedPaint)
-                    waveForm.buildPath(index-5, amplitudes.size)
-                    drawPath(waveForm, playedPaint)
                 }
                 else -> {
                     waveForm.buildPath(0,amplitudes.size)

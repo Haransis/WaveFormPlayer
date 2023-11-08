@@ -10,24 +10,20 @@ import android.graphics.drawable.Drawable
 import android.icu.text.SimpleDateFormat
 import android.os.CountDownTimer
 import android.util.AttributeSet
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Group
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.shape.CornerFamily
-import com.google.android.material.shape.ShapeAppearanceModel
 import fr.haran.soundwave.R
 import fr.haran.soundwave.controller.PlayerController
 import fr.haran.soundwave.controller.RecorderController
@@ -35,14 +31,13 @@ import java.util.*
 import kotlin.math.abs
 
 
-private const val TAG = "RecPlayerView"
 private const val PERMISSION_CODE = 0
 private const val PERMISSION_RECORD_AUDIO = Manifest.permission.RECORD_AUDIO
 open class RecPlayerView (context: Context, attrs: AttributeSet) : ConstraintLayout(context, attrs),
 ControllingView, View.OnTouchListener{
 
     private val mTouchSlop: Int = android.view.ViewConfiguration.get(context).scaledTouchSlop
-    lateinit var countDown: CountDownTimer
+    private var countDown: CountDownTimer? = null
     private var firstEventX: Float? = null
     private var isScrolling: Boolean = false
     private lateinit var timerTv: TextView
@@ -96,7 +91,6 @@ ControllingView, View.OnTouchListener{
             foregroundTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
                 if (alreadyRecorded) {
-                    toggleRecordAgain(false)
                     recorder.validate()
                 }
                 else if (checkPermission(context)){
@@ -107,7 +101,7 @@ ControllingView, View.OnTouchListener{
         stopFab = view.findViewById<FloatingActionButton>(R.id.stop).apply{
             imageTintList = ColorStateList.valueOf(recordColor)
             setOnClickListener {
-                recorder.stopRecording(false)
+                recorder.stopRecording(false, isComplete = false)
             }
         }
         stopText = view.findViewById(R.id.stop_text)
@@ -143,7 +137,7 @@ ControllingView, View.OnTouchListener{
     private fun toggleRecordAgain(deactivate: Boolean) {
         recordAgainFab.imageTintList = ColorStateList.valueOf(if (deactivate) playColor else recordColor)
         recordAgainFab.foregroundTintList = ColorStateList.valueOf(if (deactivate) playColor else recordColor)
-        recordAgainFab.isClickable = !deactivate
+        recordAgainFab.isEnabled = !deactivate
     }
 
     private fun setRecViewColor() {
@@ -204,11 +198,15 @@ ControllingView, View.OnTouchListener{
         toggleRecordAgain(false)
     }
 
+    override fun onError() {
+        onComplete()
+    }
+
     fun addAmplitude(y: Int) {
         recView.addAmplitude(y)
     }
 
-    fun addLoader(){
+    fun showLoader(){
         recordFab.visibility = View.INVISIBLE
         controlButtons.visibility = View.GONE
         loader.visibility = View.VISIBLE
@@ -221,9 +219,7 @@ ControllingView, View.OnTouchListener{
     }
 
     fun onRecordComplete() {
-        if (::countDown.isInitialized)
-            countDown.cancel()
-        recordFab.setImageResource(R.drawable.ic_check)
+        countDown?.cancel()
         stopFab.visibility = View.GONE
         stopText.visibility = View.GONE
         recordFab.visibility = View.VISIBLE
@@ -233,10 +229,22 @@ ControllingView, View.OnTouchListener{
     }
 
     fun onStart() {
+        toggleValidate()
         recordFab.visibility = View.INVISIBLE
         controlButtons.visibility = View.GONE
         stopFab.visibility = View.VISIBLE
         stopText.visibility = View.VISIBLE
+    }
+
+    fun toggleValidate(enable: Boolean = true) {
+        recordFab.imageTintList = ColorStateList.valueOf(if (!enable) playColor else recordColor)
+        recordFab.foregroundTintList = ColorStateList.valueOf(if (!enable) playColor else recordColor)
+        recordFab.isEnabled = enable
+        timerTv.text = if (!enable) SimpleDateFormat("mm:ss", Locale.FRENCH).format(Date(duration.toLong())) else "02:00"
+        if (enable)
+            recordFab.setImageResource(R.drawable.ic_check)
+        else
+            recordFab.setImageResource(R.drawable.ic_cross)
     }
 
     fun startCountDown(){
@@ -249,7 +257,7 @@ ControllingView, View.OnTouchListener{
             override fun onFinish() {
                 recView.endLine()
                 timerTv.text = mTimeFormat.format(Date(0))
-                recorder.stopRecording(false)
+                recorder.stopRecording(false, isComplete = true)
             }
         }.start()
     }
@@ -289,6 +297,11 @@ ControllingView, View.OnTouchListener{
 
     fun resetAmplitudes() {
         recView.resetAmplitudes()
+    }
+
+    fun destroyCountdown() {
+        countDown?.cancel()
+        countDown = null
     }
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {

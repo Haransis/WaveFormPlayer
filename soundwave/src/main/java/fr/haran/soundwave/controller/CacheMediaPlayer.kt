@@ -3,6 +3,7 @@ package fr.haran.soundwave.controller
 import android.media.MediaPlayer
 import android.util.Log
 import kotlinx.coroutines.*
+import timber.log.Timber
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
@@ -19,7 +20,6 @@ import java.util.*
 private const val DEFAULT_BUFFER_SIZE = 1024 * 64
 private const val DEFAULT_CONNECT_TIMEOUT = 3000
 private const val DEFAULT_READ_TIMEOUT = 3000
-private const val TAG = "CacheMediaPlayer"
 class CacheMediaPlayer(
     bufferSize: Int = DEFAULT_BUFFER_SIZE,
     private var connectTimeout: Int = DEFAULT_CONNECT_TIMEOUT,
@@ -29,6 +29,7 @@ class CacheMediaPlayer(
     private var selector: Selector? = null
     private var serverChannel: ServerSocketChannel? = null
     private var proxyJob: Job? = null
+    private var mOnErrorListener: OnErrorListener? = null
     var port = 0
     private val buffer = ByteBuffer.allocateDirect(bufferSize)
     private val bytes = ByteArray(buffer.capacity())
@@ -50,7 +51,7 @@ class CacheMediaPlayer(
                 it.register(selector, SelectionKey.OP_ACCEPT)
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Proxy initialization failed.")
+            Timber.e("init: Proxy initialization failed.")
         }
     }
 
@@ -74,6 +75,11 @@ class CacheMediaPlayer(
         super.setDataSource("http://127.0.0.1:$port/$path")
     }
 
+    override fun setOnErrorListener(listener: OnErrorListener?) {
+        super.setOnErrorListener(listener)
+        mOnErrorListener = listener
+    }
+
     private suspend fun run() {
         return withContext(Dispatchers.IO) {
             while (isActive) {
@@ -94,15 +100,17 @@ class CacheMediaPlayer(
                     }
                     selected.clear()
                 } catch (e: IOException) {
-                    Log.e(TAG, "Proxy died.")
-                    e.printStackTrace()
+                    mOnErrorListener?.let { CoroutineScope(Dispatchers.Main).launch {
+                        it.onError(this@CacheMediaPlayer, MEDIA_ERROR_UNKNOWN, MEDIA_ERROR_IO)
+                    } }
+                    cancel("proxy died", e)
                 }
             }
             try {
                 selector!!.close()
                 serverChannel!!.close()
             } catch (e: IOException) {
-                Log.e(TAG, "Proxy cleanup failed.")
+                Timber.e("run: Proxy cleanup failed.")
             }
         }
     }
@@ -151,18 +159,26 @@ class CacheMediaPlayer(
                 null
             )
         } else {
-            val conn = request.url!!.openConnection() as HttpURLConnection
-            for (headerKey in request.headers.keys) {
-                conn.setRequestProperty(headerKey, request.headers[headerKey])
+            try {
+                (request.url!!.openConnection() as? HttpURLConnection?)?.let {
+                    for (headerKey in request.headers.keys) {
+                        it.setRequestProperty(headerKey, request.headers[headerKey])
+                    }
+                    it.connectTimeout = connectTimeout
+                    it.readTimeout = readTimeout
+                    it.connect()
+                    val fos = FileOutputStream("$cacheDir/${request.hash}")
+                    write(key.channel() as SocketChannel, buildResponseHeadersStream(it), fos)
+                    write(key.channel() as SocketChannel, it.inputStream, fos)
+                    fos.close()
+                    it.disconnect()
+                }
+            } catch (e: Exception) {
+                with(File("$cacheDir/${request.hash}")){
+                    if (exists()) delete()
+                }
+                throw e
             }
-            conn.connectTimeout = connectTimeout
-            conn.readTimeout = readTimeout
-            conn.connect()
-            val fos = FileOutputStream("$cacheDir/${request.hash}")
-            write(key.channel() as SocketChannel, buildResponseHeadersStream(conn), fos)
-            write(key.channel() as SocketChannel, conn.inputStream, fos)
-            fos.close()
-            conn.disconnect()
         }
         key.channel().close()
         key.cancel()
@@ -181,14 +197,18 @@ class CacheMediaPlayer(
                 }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "Write to channel/cache failed.")
+            Timber.e("write: Write to channel/cache failed.")
         } finally {
             try {
                 stream.close()
             } catch (e: IOException) {
-                Log.e(TAG, "Could not close the stream.")
+                Timber.e("write: Could not close the stream.")
             }
         }
+    }
+
+    private fun error() {
+
     }
 
     private inner class Request(request: String) {
@@ -210,7 +230,7 @@ class CacheMediaPlayer(
                 )
                 return hex.toString()
             } catch (e: NoSuchAlgorithmException) {
-                Log.wtf(TAG, "No md5 support. Results unpredictable.")
+                Timber.wtf("md5: No md5 support. Results unpredictable.")
             }
             return ""
         }
@@ -223,7 +243,7 @@ class CacheMediaPlayer(
                     url = try {
                         URL(line.split(' ', limit = 3)[1].substring(1))
                     } catch (e: MalformedURLException) {
-                        Log.e(TAG, "CachedMediaPlayer data source URL is malformed.")
+                        Timber.e("init: CachedMediaPlayer data source URL is malformed.")
                         null
                     }
                     builder.append(line)

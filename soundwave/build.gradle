@@ -4,6 +4,8 @@ apply plugin: 'kotlin-android'
 group='com.github.Haran'
 
 android {
+    namespace "fr.haran.soundwave"
+
     signingConfigs {
         debug {
             storeFile file('/home/arahier/.android/debug.keystore')

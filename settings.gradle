@@ -1,3 +1,0 @@
-include ':soundwave'
-include ':app'
-rootProject.name = "WaveFormPlayer"

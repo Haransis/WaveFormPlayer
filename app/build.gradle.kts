@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
 }
 
@@ -9,12 +9,14 @@ kotlin {
 }
 
 android {
-    namespace = "fr.haran.soundwave"
+    namespace = "fr.haran.example"
     compileSdk = 33
 
     defaultConfig {
         minSdk = 23
         targetSdk = 33
+        versionCode = 1
+        versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,14 +43,11 @@ dependencies {
     // ---android--- //
     implementation(libs.androidx.appCompat)
     implementation(libs.androidx.coreKtx)
-    coreLibraryDesugaring(libs.bundles.desugar)
-
-    // ---data layer--- //
-    implementation(libs.bundles.coroutines)
 
     // ---ui layer--- //
     implementation(libs.androidx.constraintLayout)
     implementation(libs.material)
+    implementation(project(":soundwave"))
 
     // ---development utils--- //
     debugImplementation(libs.leakCanary)

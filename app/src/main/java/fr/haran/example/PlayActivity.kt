@@ -30,8 +30,10 @@ class PlayActivity : AppCompatActivity() {
         readAmplitudes()
         val uri = Uri.parse("android.resource://$packageName/raw/france")
         try {
-            //playerController.addAudioFileUri(applicationContext, uri, amplitudes)
-            playerController.addAudioUrl("http://10.0.2.2:8080/api/v1/assets/sound/1669570937719.aac", amplitudes)
+            // local file
+            playerController.addAudioFileUri(applicationContext, uri, amplitudes)
+            // remote file
+            //playerController.addAudioUrl("http://10.0.2.2:8080/api/v1/assets/sound/1669570937719.aac", amplitudes)
         } catch (e: IOException) {
             e.printStackTrace()
         }

@@ -73,14 +73,14 @@ class RecView(context: Context, attrs: AttributeSet): View(context, attrs) {
     }
 
     @ColorRes
-    var recordColor: Int
+    var recordColor: Int = R.color.colorPrimary
         set(value){
             field = value
             requestLayout()
         }
 
     @ColorRes
-    var playColor: Int
+    var playColor: Int = R.color.colorPrimary
         set(value){
             field = value
             requestLayout()

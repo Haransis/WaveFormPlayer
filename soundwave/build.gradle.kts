@@ -10,11 +10,10 @@ kotlin {
 
 android {
     namespace = "fr.haran.soundwave"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 23
-        targetSdk = 33
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -51,7 +50,7 @@ dependencies {
     implementation(libs.material)
 
     // ---development utils--- //
-    debugImplementation(libs.leakCanary)
+    //debugImplementation(libs.leakCanary)
     implementation(libs.timber)
 
     // ---testing dependencies--- //

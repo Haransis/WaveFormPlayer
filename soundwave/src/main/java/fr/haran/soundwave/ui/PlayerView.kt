@@ -133,26 +133,26 @@ open class PlayerView(context: Context, attrs: AttributeSet) : ConstraintLayout(
     }
 
     @ColorRes
-    var mainColor: Int
+    var mainColor: Int = R.color.colorPrimary
         set(value){
             field = value
             setSoundWaveColor()
         }
 
     @ColorRes
-    var secondaryColor: Int
+    var secondaryColor: Int = R.color.colorAccent
         set(value){
             field = value
             setSoundWaveColor()
         }
 
-    var text: String?
+    var text: String? = null
         set(value){
             field = value
             invalidate()
         }
 
-    var shouldReflect: Boolean
+    var shouldReflect: Boolean = false
         set(value){
             field = value
             invalidate()

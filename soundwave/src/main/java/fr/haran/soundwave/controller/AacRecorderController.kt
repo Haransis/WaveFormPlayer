@@ -29,6 +29,7 @@ private const val RECORDER_AUDIO_ENCODING: Int = AudioFormat.ENCODING_PCM_16BIT
 class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: String, var retriever: InformationRetriever? = null) : RecorderController {
 
     private var start = 0L
+    private var recordingStarted = false
     private var recordedBefore = false
     private var recorder: AudioRecord? = null
     private var codec: MediaCodec? = null
@@ -71,7 +72,10 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             aacFile.canonicalFile.delete()
     }
 
-    override fun isRecording(): Boolean = writerJob?.isActive == true
+    override fun isRecording(): Boolean {
+        return if (writerJob == null) recordingStarted
+        else writerJob!!.isActive
+    }
 
     override fun prepareRecorder() {
         bufferSize = AudioRecord.getMinBufferSize(
@@ -128,6 +132,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
     }
 
     private fun writeAudioDataToFile() {
+        recordingStarted = true
         writerJob = CoroutineScope(Dispatchers.IO).launch {
             start = SystemClock.elapsedRealtime()
             val bufferInfo = MediaCodec.BufferInfo()
@@ -157,6 +162,7 @@ class AacRecorderController(var recPlayerView: RecPlayerView, var defaultPath: S
             handler.post { recPlayerView.onRecordComplete() }
             try {
                 playerController.addAudioFileUri(recPlayerView.context, Uri.parse("file://$aacPath"))
+                recordingStarted = false
             } catch (exception: IOException) {
                 Timber.w(exception)
             }

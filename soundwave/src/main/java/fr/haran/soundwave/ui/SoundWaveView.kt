@@ -73,21 +73,21 @@ open class SoundWaveView(context: Context, attrs: AttributeSet): View(context, a
         }
     }
 
-    @ColorRes var playedColor: Int
+    @ColorRes var playedColor: Int = R.color.colorPrimary
         set(value){
             field = value
             invalidate()
             requestLayout()
         }
 
-    @ColorRes var nonPlayedColor: Int
+    @ColorRes var nonPlayedColor: Int = R.color.colorPrimaryDark
         set(value){
             field = value
             invalidate()
             requestLayout()
         }
 
-    var shouldReflect: Boolean
+    var shouldReflect: Boolean = false
         set(value){
             field = value
             invalidate()

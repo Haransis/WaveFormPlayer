@@ -263,26 +263,26 @@ ControllingView, View.OnTouchListener{
     }
 
     @ColorRes
-    var recordColor: Int
+    var recordColor: Int = R.color.colorPrimary
         set(value){
             field = value
             setRecViewColor()
         }
 
     @ColorRes
-    var playColor: Int
+    var playColor: Int = R.color.colorPrimary
         set(value){
             field = value
             setRecViewColor()
         }
 
-    var duration: Int
+    var duration: Int = 0
         set(value){
             field = value
             setRecViewSamples()
         }
 
-    var interval: Int
+    var interval: Int = 0
         set(value){
             if (value != 0){
                 field = value
